@@ -22,8 +22,7 @@ from galbot_sdk.g1 import ControlStatus, GalbotRobot, JointCommand
 
 
 # ===== 调速参数 =====
-INTERVAL = 0.35         # 基础调度间隔 = 0.35 秒（半拍）
-                        # 1 拍 = 2 * INTERVAL = 0.7 秒
+INTERVAL = 0.7          # 原始节奏：1 拍 = 0.7 秒（~86 BPM）
 RESET_DELAY = 0.55     # 按下后多久归位（需大于手指物理完成松开动作的时间）
 
 
@@ -32,8 +31,8 @@ RESET_DELAY = 0.55     # 按下后多久归位（需大于手指物理完成松�
 # 实际音高由手校准决定，这里只是触发位置相同
 NOTE_MAP = {
     # 低八度（base）
-    1: ("left_dexhand",  5, 760),   # 1 = C4
-    2: ("left_dexhand",  4, 830),   # 2 = D4
+    1: ("left_dexhand",  5, 700),   # 1 = C4  (加深弯曲，使中质服务器更容易响应)
+    2: ("left_dexhand",  4, 780),   # 2 = D4  (加深弯曲)
     3: ("left_dexhand",  3, 850),   # 3 = E4
     4: ("left_dexhand",  2, 830),   # 4 = F4
     5: ("right_dexhand", 2, 830),   # 5 = G4
@@ -63,27 +62,31 @@ SCORE = [
     # 原谱：3 35 6·1 1·6 | 5 56 5 -
     # 高八度 Do（1·, 1 sticky）用 8 表示（右手小拇指）
     # 6· 和 6 暂不处理（其他高八度音后续通过移动手解决）
-    # (3, 1), (3, 0.5), (5, 0.5), (6, 0.5), (8, 0.5), (8, 0.5), (6, 0.5),
-    # (5, 1), (5, 0.5), (6, 0.5), (5, 2),
+    (3, 1), (3, 0.5), (5, 0.5), (6, 0.5), (8, 0.5), (8, 0.5), (6, 0.5),
+    (5, 1), (5, 0.5), (6, 0.5), (5, 2),
 
     # 好一朵美丽的茉莉花
-    # (3, 1), (3, 0.5), (5, 0.5), (6, 0.5), (8, 0.5), (8, 0.5), (6, 0.5),
-    # (5, 1), (5, 0.5), (6, 0.5), (5, 2),
+    (3, 1), (3, 0.5), (5, 0.5), (6, 0.5), (8, 0.5), (8, 0.5), (6, 0.5),
+    (5, 1), (5, 0.5), (6, 0.5), (5, 2),
 
-    # # 芬芳美丽满枝丫
-    # (5, 1), (5, 1), (5, 1), (3, 0.5), (5, 0.5),
-    # (6, 1), (6, 1), (5, 2),
+    # 芬芳美丽满枝丫
+    (5, 1), (5, 1), (5, 1), (3, 0.5), (5, 0.5),
+    (6, 1), (6, 1), (5, 2),
 
     # 又香又白人人夸
     (3, 1), (2, 0.5), (3, 0.5), (5, 1), (3, 0.5), (2, 0.5),
     (1, 1), (1, 0.5), (2, 0.5), (1, 2),
-    # # 让我来将你摘下
-    # (3, 1), (2, 1), (1, 1), (3, 1),
-    # (2, 1, True), (3, 1),
-    # (5, 1), (6, 1), (1, 1), (5, 2),
-    # (2, 1), (3, 1), (5, 1), (2, 1), (3, 1),
-    # (1, 1), (6, 1), (1, 2),
-    # # 送给别人家
+
+    # 让我来将你摘下
+    (3, 0.5), (2, 0.5), (1, 0.5), (3, 0.5),(2, 1, True), (3, 1),
+    (5, 1), (6, 0.5), (8, 0.5), (5, 2),
+
+    # 送给别人家
+    (2, 1), (3, 0.5), (5, 0.5), (2, 0.5), (3, 0.5),(1, 0.5), (6, 0.5),  # 低八度6
+    (5, 2),   # 低八度5
+    
+
+
     # (1, 1), (6, 1), (1, 1),
     # (7, 1, True), (7, 1),
     # (1, 1), (2, 1), (3, 2),
@@ -184,31 +187,25 @@ def hit(robot: GalbotRobot, end_effector: str, commands: list):
 idx = 0
 MAX = len(SCORE)
 finished = threading.Event()
+shutdown_event = threading.Event()  # 用于跨线程传递关闭信号（Ctrl+C 、异常等）
 
 
 def hit_next(robot: GalbotRobot):
-    """apscheduler 回调：消费 SCORE 中的一条事件，控制手指按下/归位/休止。
+    """处理一个 SCORE 事件。
 
-    处理步骤：
-      1) 解析 (note, duration) 或 (note, duration, is_extended)
-         - note=0：休止符
-         - note=1-7：音符
-         - is_extended=布尔值：延音/连音，持续额外 1 拍
-      2) 音符则按下；休止符则只等待
-      3) 按 duration 时间按下并归位
-         - 1 拍 = RESET_DELAY (0.55s)，保持原速
-         - 短音符（duration < 1）：按 duration * RESET_DELAY 后立即归位
-         - 长音符（duration > 1）：按下 RESET_DELAY + (duration-1) * RESET_DELAY
-      4) 延音：再多压 1 拍（RESET_DELAY）后归位
-      5) idx 自增
+    调度原理：
+    - 事件本身占用的时间 = actual_time（不包含 RESET_DELAY 补足部分）
+    - Timer delay = max(0.001, duration * INTERVAL - actual_time)
+      · 0.5 拍事件间隔 0.5*0.7 = 0.35s → 连音
+      · 1   拍事件间隔 1*0.7   = 0.7s  → 原始节奏
+      · 2   拍事件间隔 2*0.7   = 1.4s
     """
     global idx
-
-    if idx >= MAX:
-        finished.set()
+    if idx >= MAX or shutdown_event.is_set():
+        if idx >= MAX:
+            finished.set()
         return
 
-    # 1) 解析事件
     event = SCORE[idx]
     if len(event) == 2:
         note, duration = event
@@ -216,56 +213,58 @@ def hit_next(robot: GalbotRobot):
     else:
         note, duration, is_extended = event
 
-    # 1 拍 = RESET_DELAY (0.55s)，保持原速
     target_press = duration * RESET_DELAY
+    actual_time = target_press  # 不再“补足”到 RESET_DELAY
 
     if note != 0:
         end_effector, joint_idx, position = NOTE_MAP[note]
-
-        # 2) 按下
         hit(robot, end_effector, generateDexhandCommands(joint_idx, position))
-
-        # 3) 按 duration 时间按下
         if target_press < RESET_DELAY:
-            # 短音符（减时线）：按 target_press 后立即归位
+            # 短音符：直接按 target_press 时间释放（保留连音效果）
             time.sleep(target_press)
             hit(robot, end_effector, generateDexhandCommands(0, 1000))
         else:
-            # 正常/长音符
             time.sleep(RESET_DELAY)
             if target_press > RESET_DELAY:
                 time.sleep(target_press - RESET_DELAY)
-
             if is_extended:
-                # 4) 延音：再多压 1 拍后归位
                 time.sleep(RESET_DELAY)
                 hit(robot, end_effector, generateDexhandCommands(0, 1000))
+                actual_time += RESET_DELAY
             else:
-                # 标准归位
                 hit(robot, end_effector, generateDexhandCommands(0, 1000))
     else:
-        # 休止符
         time.sleep(target_press)
 
-    # 5) 自增
     idx += 1
 
+    if idx >= MAX:
+        finished.set()
+        return
+
+    if not shutdown_event.is_set():
+        # 用拍数算下次触发时间，连音与原节奏同时满足
+        delay = max(0.001, duration * INTERVAL - actual_time)
+        timer = threading.Timer(delay, hit_next, args=(robot,))
+        timer.daemon = True
+        timer.start()
+
 def main():
-    """程序入口：连接机器人、调度器、播放《茉莉花》、清理。
+    """程序入口：连接机器人、播放、完整清理后退出。
 
     流程：
       1) 创建 GalbotRobot 并 init（连真机）
       2) 等待 1s 让灵巧手完成上电复位
       3) 把双手摆到张开状态
-      4) 创建 BackgroundScheduler，注册 hit_next 任务（每 INTERVAL 触发）
-      5) 启动 scheduler 并等待 finished 信号（所有事件消费完）
-      6) 弹奏完毕后恢复弹奏前姿势（全部张开）
-      7) finally：关闭 scheduler，释放机器人资源
+      4) 手动调度：直接调用 hit_next（hit_next 在处理完毕后会自动 Timer 下一次）
+      5) 等待播放完成或用户按 Ctrl+C 中断
+      6) 弹奏完毕后恢复弹奏前姿势
+      7) finally：重置手部 + 释放机器人资源（try/except 保证不卡死）
     """
+    global idx
     robot = GalbotRobot()
     robot.init()
     time.sleep(1)
-    scheduler = BackgroundScheduler()
 
     try:
         # 弹奏前的初始姿势：双手全张开
@@ -273,25 +272,51 @@ def main():
         hit(robot, "left_dexhand",  init_cmds)
         hit(robot, "right_dexhand", init_cmds)
 
-        scheduler.add_job(
-            func=hit_next,
-            args=(robot,),
-            trigger="interval",
-            seconds=INTERVAL,
-            coalesce=True,
-        )
-        scheduler.start()
-        finished.wait()
+        # 重置状态
+        idx = 0
+        finished.clear()
+        shutdown_event.clear()
+
+        # 手动调度：直接调用 hit_next，它在完成后自动 Timer 下一次
+        hit_next(robot)
+
+        # 等待播放完成或被中断
+        while not finished.is_set() and not shutdown_event.is_set():
+            time.sleep(0.1)
 
         # 弹奏完毕后恢复弹奏前姿势
-        hit(robot, "left_dexhand",  init_cmds)
-        hit(robot, "right_dexhand", init_cmds)
-        time.sleep(0.5)  # 等待手指物理上完成归位
+        if not shutdown_event.is_set():
+            hit(robot, "left_dexhand",  init_cmds)
+            hit(robot, "right_dexhand", init_cmds)
+            time.sleep(0.3)  # 等待手指物理上完成归位
+
+    except KeyboardInterrupt:
+        print("\n[中断] 检测到 Ctrl+C，正在安全退出...")
+        shutdown_event.set()
     finally:
-        scheduler.shutdown(wait=True)
-        robot.request_shutdown()
-        robot.wait_for_shutdown()
-        robot.destroy()
+        # 重置手部为开启状态（保证退出时不卡住）
+        try:
+            reset_cmds = generateDexhandCommands(0, 1000)
+            hit(robot, "left_dexhand",  reset_cmds)
+            hit(robot, "right_dexhand", reset_cmds)
+            time.sleep(0.2)
+        except Exception as e:
+            print(f"重置手部失败: {e}")
+
+        # 释放机器人资源（try/except 保证不卡死）
+        try:
+            robot.request_shutdown()
+        except Exception as e:
+            print(f"request_shutdown 失败: {e}")
+        try:
+            robot.wait_for_shutdown()
+        except Exception as e:
+            print(f"wait_for_shutdown 失败: {e}")
+        try:
+            robot.destroy()
+        except Exception as e:
+            print(f"destroy 失败: {e}")
+        print("[完成] 已退出")
 
 
 if __name__ == "__main__":
