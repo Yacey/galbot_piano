@@ -171,7 +171,7 @@ def hit(robot: GalbotRobot, end_effector: str, commands: list):
     """发送一帧 6-DoF 角度指令到指定灵巧手（左/右）。
 
     is_blocking=False 让调用立即返回，不阻塞调度器。
-    SDK 返回非 SUCCESS 时输出警告（不抛异常）。
+    SDK 返回非 SUCCESS 时输出警告（不报异常）。
     """
     print(f"hit: {end_effector}, {commands}")
     status = robot.set_dexhand_command(
@@ -181,6 +181,19 @@ def hit(robot: GalbotRobot, end_effector: str, commands: list):
     )
     if status != ControlStatus.SUCCESS:
         print(f"bad status: {status}")
+
+
+def reset_hands(robot: GalbotRobot):
+    """重置双手为开启状态（拇旋转=0，其他关节=1000）。
+
+    用于：
+    - 弹奏前的初姿势
+    - 弹奏后的复位
+    - Ctrl+C 强制退出时
+    """
+    reset_cmds = generateDexhandCommands(0, 1000)
+    hit(robot, "left_dexhand",  reset_cmds)
+    hit(robot, "right_dexhand", reset_cmds)
 
 
 # ===== 调度状态 =====
@@ -286,8 +299,7 @@ def main():
 
         # 弹奏完毕后恢复弹奏前姿势
         if not shutdown_event.is_set():
-            hit(robot, "left_dexhand",  init_cmds)
-            hit(robot, "right_dexhand", init_cmds)
+            reset_hands(robot)
             time.sleep(0.3)  # 等待手指物理上完成归位
 
     except KeyboardInterrupt:
@@ -296,9 +308,7 @@ def main():
     finally:
         # 重置手部为开启状态（保证退出时不卡住）
         try:
-            reset_cmds = generateDexhandCommands(0, 1000)
-            hit(robot, "left_dexhand",  reset_cmds)
-            hit(robot, "right_dexhand", reset_cmds)
+            reset_hands(robot)
             time.sleep(0.2)
         except Exception as e:
             print(f"重置手部失败: {e}")
