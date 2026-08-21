@@ -25,8 +25,6 @@ from galbot_sdk.g1 import (
     G1JointGroup,
     JointCommand,
     MotionStatus,
-    Parameter,
-    PoseState,
 )
 
 
@@ -37,7 +35,8 @@ RESET_DELAY = 0.55
 # ===== 手部位姿管理 =====
 LEFT_HAND_OFFSET_LEFT   = 0.07
 RIGHT_HAND_OFFSET_RIGHT = -0.045
-HAND_MOVE_DELAY         = 0.1
+HAND_MOVE_SPEED_RAD_S   = 0.3   # 手部移位速度（弧度/秒），0.2 起慢慢加
+HAND_MOVE_DELAY         = 0.3   # 速度控制后预计手部到位所需时间（原 0.1 偏小，详见 WORK_LOG 18.1）
 
 
 # ===== 音符到关节的映射（与 Twinkle 一致） =====
@@ -87,7 +86,7 @@ SCORE = [
     # 6· 和 6 暂不处理（其他高八度音后续通过移动手解决）
 
 
-    # -------伴奏--------
+    # # -------伴奏--------
     # 好一朵美丽的茉莉花
     (3, 1), (3, 0.5), (5, 0.5), (6, 0.5), (8, 0.5), (8, 0.5), (6, 0.5),
     (5, 1), (5, 0.5), (6, 0.5), (5, 2),
@@ -135,7 +134,7 @@ SCORE = [
     (1, 1), (1, 0.5), (2, 0.5), (1, 2),
 
     # 让我来将你摘下
-    (3, 0.5), (2, 0.5, True), (1, 0.5), (3, 0.5),(9, 1, True), (3, 0.5),
+    (3, 0.5), (2, 0.5, True), (1, 0.5), (3, 0.5),(2, 1, True), (3, 0.5),
     (5, 1), (6, 0.5), (8, 0.5), (5, 2),
 
     # 送给别人家
@@ -156,7 +155,7 @@ SCORE = [
     (5, 1), (5, 0.5), (6, 0.5), (5, 2),
 
     #  好一朵美丽的茉莉花
-    (3, 1), (3, 0.5), (5, 0.5, True), (6, 0.5), (8, 0.5, True), (8, 0.5), (6, 0.5),
+    (3, 1), (3, 0.5), (5, 0.5, True),  (6, 0.5), (8, 0.5, True), (8, 0.5), (6, 0.5),
     (5, 1), (5, 0.5), (6, 0.5), (5, 2),
 
     # 芬芳美丽满枝丫
@@ -254,18 +253,36 @@ def reset_hands(robot: GalbotRobot):
     hit(robot, "right_dexhand", reset_cmds)
 
 
-def move_hand_to(motion, target_pose, joint_group):
-    """移动单手到绝对目标位姿"""
-    pose_state = PoseState()
-    pose_state.chain_name = joint_group
-    params = Parameter()
-    params.set_direct_execute(True)
-    params.set_move_line(True)
-    params.is_blocking = False
-    motion.motion_plan_multi_waypoints(
-        {pose_state: [target_pose]},
-        enable_collision_check=False, params=params,
+def move_hand_to(motion, robot, target_pose, joint_group,
+                    speed_rad_s=HAND_MOVE_SPEED_RAD_S):
+    """移动单手到绝对目标位姿（速度控制版）。
+
+    与原版（motion_plan_multi_waypoints 路径规划）的区别：
+      - 原版：路径规划后走直线轨迹，速度由 SDK 内部决定
+      - 本版：先求逆运动学（IK），再用 set_joint_positions 直接驱动关节
+        速度可控（弧度/秒），可预测
+
+    调用方仍以 time.sleep(HAND_MOVE_DELAY) 等手物理到位
+    （is_blocking=False，与原版一致保持非阻塞）。
+    """
+    # 1) 求逆运动学：把目标末端位姿 -> 关节角度
+    status, positions = motion.inverse_kinematics(
+        target_pose, [joint_group],
     )
+    if status != MotionStatus.SUCCESS:
+        print(f"[IK] 逆运动学失败 ({joint_group}): {status}")
+        return
+    joint_positions = positions[joint_group]
+
+    # 2) 以指定速度驱动关节到目标角度（非阻塞）
+    status = robot.set_joint_positions(
+        joint_positions=joint_positions,
+        joint_groups=[joint_group],
+        speed_rad_s=speed_rad_s,
+        is_blocking=False,
+    )
+    if status != ControlStatus.SUCCESS:
+        print(f"[移位] {joint_group} set_joint_positions 失败: {status}")
 
 
 # ===== 调度状态 =====
@@ -314,21 +331,21 @@ def hit_next(robot: GalbotRobot, motion: GalbotMotion):
     if cur_needs_left and not left_hand_moved:
         target = list(left_origin_pose); target[1] += LEFT_HAND_OFFSET_LEFT
         print(f"[手部] 左手左移 {LEFT_HAND_OFFSET_LEFT*100:.0f}cm")
-        move_hand_to(motion, target, G1JointGroup.left_arm); time.sleep(HAND_MOVE_DELAY)
+        move_hand_to(motion, robot, target, G1JointGroup.left_arm); time.sleep(HAND_MOVE_DELAY)
         left_hand_moved = True
     elif not cur_needs_left and not next_needs_left and left_hand_moved:
         print("[手部] 左手回原位")
-        move_hand_to(motion, list(left_origin_pose), G1JointGroup.left_arm); time.sleep(HAND_MOVE_DELAY)
+        move_hand_to(motion, robot, list(left_origin_pose), G1JointGroup.left_arm); time.sleep(HAND_MOVE_DELAY)
         left_hand_moved = False
 
     if cur_needs_right and not right_hand_moved:
         target = list(right_origin_pose); target[1] += RIGHT_HAND_OFFSET_RIGHT
         print(f"[手部] 右手右移 {-RIGHT_HAND_OFFSET_RIGHT*100:.0f}cm")
-        move_hand_to(motion, target, G1JointGroup.right_arm); time.sleep(HAND_MOVE_DELAY)
+        move_hand_to(motion, robot, target, G1JointGroup.right_arm); time.sleep(HAND_MOVE_DELAY)
         right_hand_moved = True
     elif not cur_needs_right and not next_needs_right and right_hand_moved:
         print("[手部] 右手回原位")
-        move_hand_to(motion, list(right_origin_pose), G1JointGroup.right_arm); time.sleep(HAND_MOVE_DELAY)
+        move_hand_to(motion, robot, list(right_origin_pose), G1JointGroup.right_arm); time.sleep(HAND_MOVE_DELAY)
         right_hand_moved = False
 
     target_press = duration * RESET_DELAY
@@ -421,9 +438,9 @@ def main():
         # 弹奏完毕后恢复弹奏前姿势
         if not shutdown_event.is_set():
             if left_hand_moved:
-                move_hand_to(motion, list(left_origin_pose), G1JointGroup.left_arm)
+                move_hand_to(motion, robot, list(left_origin_pose), G1JointGroup.left_arm)
             if right_hand_moved:
-                move_hand_to(motion, list(right_origin_pose), G1JointGroup.right_arm)
+                move_hand_to(motion, robot, list(right_origin_pose), G1JointGroup.right_arm)
             if left_hand_moved or right_hand_moved:
                 time.sleep(HAND_MOVE_DELAY)
             reset_hands(robot)
