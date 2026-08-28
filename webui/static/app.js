@@ -13,11 +13,39 @@ const ui = {
   play: document.querySelector("#play-button"),
   stop: document.querySelector("#stop-button"),
   refresh: document.querySelector("#refresh-button"),
+  theme: document.querySelector("#theme-button"),
+  themeColor: document.querySelector('meta[name="theme-color"]'),
   toast: document.querySelector("#toast"),
 };
 
 let toastTimer;
-let latestStatus;
+const themeStorageKey = "galbot-piano-theme";
+
+function preferredTheme() {
+  try {
+    const saved = window.localStorage.getItem(themeStorageKey);
+    if (saved === "light" || saved === "dark") return saved;
+  } catch (_) {
+    // 无痕模式等场景可能禁止 localStorage，仍可使用系统偏好。
+  }
+  return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+}
+
+function setTheme(theme, save = true) {
+  const isDark = theme === "dark";
+  document.body.dataset.theme = theme;
+  document.documentElement.style.colorScheme = theme;
+  ui.theme.textContent = isDark ? "切换至白天模式" : "切换至暗黑模式";
+  ui.theme.setAttribute("aria-pressed", String(isDark));
+  ui.themeColor.setAttribute("content", isDark ? "#0e1726" : "#f5f8fb");
+  if (save) {
+    try {
+      window.localStorage.setItem(themeStorageKey, theme);
+    } catch (_) {
+      // 主题切换仍立即生效，只是不保存偏好。
+    }
+  }
+}
 
 function toast(message, isError = false) {
   window.clearTimeout(toastTimer);
@@ -62,7 +90,6 @@ function renderSongs(status) {
 }
 
 function render(status) {
-  latestStatus = status;
   const { connection, playback } = status;
   ui.connectionDot.className = `status-dot ${connection.state}`;
   ui.connectionLabel.textContent = connection.label;
@@ -103,6 +130,8 @@ ui.reset.addEventListener("click", () => runAction("/api/reset-hands", {}, "已�
 ui.play.addEventListener("click", () => runAction("/api/play", {}, "已启动演奏进程"));
 ui.stop.addEventListener("click", () => runAction("/api/stop", {}, "已发送软停止信号"));
 ui.refresh.addEventListener("click", refresh);
+ui.theme.addEventListener("click", () => setTheme(document.body.dataset.theme === "dark" ? "light" : "dark"));
 
+setTheme(preferredTheme(), false);
 refresh();
 window.setInterval(refresh, 1500);

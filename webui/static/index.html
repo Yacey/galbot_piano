@@ -15,78 +15,83 @@
           <h1>钢琴调试台</h1>
           <p class="subtitle">连接机器人，选择曲目，并在一次清晰的操作链路中进行现场调试。</p>
         </div>
-        <div class="connection-card" aria-live="polite">
-          <span id="connection-dot" class="status-dot"></span>
-          <div>
-            <p class="caption">机器人连接状态</p>
-            <strong id="connection-label">正在读取状态…</strong>
-            <p id="connection-detail" class="detail"></p>
+        <div class="hero-actions">
+          <button id="theme-button" class="theme-button" type="button" aria-pressed="true">切换至白天模式</button>
+          <div class="connection-card" aria-live="polite">
+            <span id="connection-dot" class="status-dot"></span>
+            <div>
+              <p class="caption">机器人连接状态</p>
+              <strong id="connection-label">正在读取状态…</strong>
+              <p id="connection-detail" class="detail"></p>
+            </div>
           </div>
         </div>
       </header>
 
-      <section class="grid top-grid" aria-label="机器人控制">
-        <article class="panel">
+      <div class="dashboard">
+        <section class="grid top-grid" aria-label="机器人控制">
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">01 · CONNECTION</p>
+                <h2>连接与归零</h2>
+              </div>
+              <span id="sdk-badge" class="badge">检测中</span>
+            </div>
+            <p class="panel-copy">先连接以验证 SDK 通信；演奏时连接会由曲目脚本独占。</p>
+            <div class="button-row">
+              <button id="connect-button" class="button primary">连接机器人</button>
+              <button id="disconnect-button" class="button secondary">断开连接</button>
+            </div>
+            <div class="reset-box">
+              <div>
+                <p class="caption">机器人姿态归零</p>
+                <p>当前实现为双灵巧手安全张开：拇指旋转 0，其余关节 1000。</p>
+              </div>
+              <button id="reset-button" class="button warning">双手安全归零</button>
+            </div>
+            <p class="note">全身关节零位涉及碰撞与姿态安全，待根据现场 SDK 规范确认后再接入。</p>
+          </article>
+
+          <article class="panel playback-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">02 · PLAYBACK</p>
+                <h2>演奏控制</h2>
+              </div>
+              <span id="playback-badge" class="badge muted">空闲</span>
+            </div>
+            <p id="playback-description" class="panel-copy">选择一首曲目后启动。运行日志会显示在右侧。</p>
+            <div class="button-row">
+              <button id="play-button" class="button primary">启动所选曲目</button>
+              <button id="stop-button" class="button danger">软停止演奏</button>
+            </div>
+            <p class="note">停止操作发送 Ctrl+C / SIGINT，让原有脚本执行 reset 和资源释放；不会强制杀死进程。</p>
+          </article>
+        </section>
+
+        <section class="songs" aria-labelledby="song-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">03 · SONG LIBRARY</p>
+              <h2 id="song-title">选择曲目</h2>
+            </div>
+            <p>单页操作，不会跳转到其他页面。</p>
+          </div>
+          <div id="song-list" class="song-list"></div>
+        </section>
+
+        <section class="panel logs-panel" aria-labelledby="logs-title">
           <div class="panel-heading">
             <div>
-              <p class="eyebrow">01 · CONNECTION</p>
-              <h2>连接与归零</h2>
+              <p class="eyebrow">04 · RUNTIME</p>
+              <h2 id="logs-title">现场日志</h2>
             </div>
-            <span id="sdk-badge" class="badge">检测中</span>
+            <button id="refresh-button" class="text-button">刷新状态</button>
           </div>
-          <p class="panel-copy">先连接以验证 SDK 通信；演奏时连接会由曲目脚本独占。</p>
-          <div class="button-row">
-            <button id="connect-button" class="button primary">连接机器人</button>
-            <button id="disconnect-button" class="button secondary">断开连接</button>
-          </div>
-          <div class="reset-box">
-            <div>
-              <p class="caption">机器人姿态归零</p>
-              <p>当前实现为双灵巧手安全张开：拇指旋转 0，其余关节 1000。</p>
-            </div>
-            <button id="reset-button" class="button warning">双手安全归零</button>
-          </div>
-          <p class="note">全身关节零位涉及碰撞与姿态安全，待根据现场 SDK 规范确认后再接入。</p>
-        </article>
-
-        <article class="panel playback-panel">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow">02 · PLAYBACK</p>
-              <h2>演奏控制</h2>
-            </div>
-            <span id="playback-badge" class="badge muted">空闲</span>
-          </div>
-          <p id="playback-description" class="panel-copy">选择一首曲目后启动。运行日志会显示在下方。</p>
-          <div class="button-row">
-            <button id="play-button" class="button primary">启动所选曲目</button>
-            <button id="stop-button" class="button danger">软停止演奏</button>
-          </div>
-          <p class="note">停止操作发送 Ctrl+C / SIGINT，让原有脚本执行 reset 和资源释放；不会强制杀死进程。</p>
-        </article>
-      </section>
-
-      <section class="songs" aria-labelledby="song-title">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">03 · SONG LIBRARY</p>
-            <h2 id="song-title">选择曲目</h2>
-          </div>
-          <p>曲目逻辑沿用仓库已存在的真机脚本。</p>
-        </div>
-        <div id="song-list" class="song-list"></div>
-      </section>
-
-      <section class="panel logs-panel" aria-labelledby="logs-title">
-        <div class="panel-heading">
-          <div>
-            <p class="eyebrow">04 · RUNTIME</p>
-            <h2 id="logs-title">现场日志</h2>
-          </div>
-          <button id="refresh-button" class="text-button">刷新状态</button>
-        </div>
-        <pre id="logs" class="logs">正在读取日志…</pre>
-      </section>
+          <pre id="logs" class="logs">正在读取日志…</pre>
+        </section>
+      </div>
     </main>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
