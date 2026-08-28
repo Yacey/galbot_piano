@@ -13,6 +13,23 @@
   - 延音线（"X -"）：手指按住 2 拍
   - 连音线（"⌒"）：第一个音的 duration 标记为 True 表示延音一拍
   - 减时线（如 8分音符、16分音符）：用 duration=0.5/0.25 表示半拍/四分之一拍
+
+此版代码中，初始位姿有所改变（左右手中间隔四个键位）
+
+| 手 |  原位食指  |   原位中指  | 原位无名指 | 原位小拇指 |
+|--- |-----------|-------------|-----------|-----------|
+| 左手 | D4（Re） |   C4（Do）  | B3（低 Si） | A3（低 La） |
+| 右手 | B4（Si） | C5（高 Do） | D5（高 Re） | E5（高 Mi） |
+  
+
+|  手  |   手掌位置 | 小拇指         |    无名指       |   中指        |   食指  |
+|------|-----------|---------------|-----------------|--------------|---------|
+| 左手 |   原位     | A3（低6）     | B3（未用于当前谱）| C4（1）      | D4（2）  |
+| 左手 | 向右 5cm   |  C4（1）      | D4（2）         | E4（3）       |  F4（4） |
+| 左手 | 向左 2.5cm | G3（低5 / 10）| A3（低6 / 11）   | —            | —       |
+| 右手 | 原位       | E5（当前谱未用）| D5（高2 / 9）   | C5（高1 / 8） | B4（7） |
+| 右手 | 向左 5cm   | C5（高1 / 8） |    B4（7）       | A4（6）       | G4（5） |
+
 """
 import threading
 import time
@@ -32,37 +49,124 @@ from galbot_sdk.g1 import (
 INTERVAL = 0.7
 RESET_DELAY = 0.55
 
+
+
+# 初始位姿为
+# ORIGINAL_LEFT = [
+#   0.5581821103099842, 0.07262865463298485, 0.8827970267118115, 
+#   0.006255145382323624, 0.08071926031697177, 0.009632238159119438, 
+#   0.9966707049764094]
+# ORIGINAL_RIGHT = [
+#   0.5674243747810743, -0.12291054789286718, 0.8766152675353718, 
+#   0.013935849142309971, 0.05652338361686925, 0.06110483610243252, 
+#   0.9964321844551579]
+
+
 # ===== 手部位姿管理 =====
-LEFT_HAND_OFFSET_LEFT   = 0.07
-RIGHT_HAND_OFFSET_RIGHT = -0.045
-HAND_MOVE_SPEED_RAD_S   = 0.3   # 手部移位速度（弧度/秒），0.2 起慢慢加
-HAND_MOVE_DELAY         = 0.3   # 速度控制后预计手部到位所需时间（原 0.1 偏小，详见 WORK_LOG 18.1）
+# 坐标约定沿用原脚本：Y 增大为向左，Y 减小为向右。
+# 新初始位姿：
+#   左手：食=D4、中=C4、无=B3、小=A3
+#   右手：食=B4、中=C5、无=D5、小=E5
+LEFT_HAND_OFFSET_RIGHT = -0.050  # 左手向右 5cm：用于 E4/F4
+LEFT_HAND_OFFSET_LOW   = 0.025   # 左手向左 2.5cm：用于低八度 A3 -> G3
+RIGHT_HAND_OFFSET_LEFT = 0.050   # 右手向左 5cm：用于 G4/A4
+HAND_MOVE_SPEED_RAD_S  = 0.3     # 手部移位速度（弧度/秒），0.2 起慢慢加
+HAND_MOVE_DELAY        = 0.3     # 速度控制后预计手部到位所需时间
+
+# motion 服务初始化后，第一次读取末端位姿偶尔会返回 DATA_FETCH_FAILED。
+# 先等待服务就绪，再进行有限重试；避免瞬态状态未就绪导致整首曲子退出。
+MOTION_STARTUP_DELAY = 2.0
+POSE_FETCH_MAX_RETRIES = 10
+POSE_FETCH_RETRY_INTERVAL = 0.5
 
 
-# ===== 音符到关节的映射（与 Twinkle 一致） =====
-# 高八度（数字后加点如 "1."）沿用原指纲+位置；
-# 实际音高由手校准决定，这里只是触发位置相同
-NOTE_MAP = {
-    # 低八度（base）
-    1: ("left_dexhand",  5, 700),   # 1 = C4
-    2: ("left_dexhand",  4, 830),   # 2 = D4
-    3: ("left_dexhand",  3, 850),   # 3 = E4
-    4: ("left_dexhand",  2, 830),   # 4 = F4
-    5: ("right_dexhand", 2, 830),   # 5 = G4  (原位右手食指)
-    6: ("right_dexhand", 3, 850),   # 6 = A4  (原位右手中指)
-    7: ("right_dexhand", 4, 830),   # 7 = B4  (原位右手无名指)
-    # 高八度：Do + Re 通过移动手解决
-    8: ("right_dexhand", 5, 600),  # 1· = C5（右手小拇指，原位）
-    9: ("right_dexhand", 4, 830),  # 2· = D5（右手无名指，需右移 4.5cm）
-    # 低八度：5、6 通过移动左手解决
-    10: ("left_dexhand",  5, 700),  # 低5· = G3（左手小拇指，需左移 7cm）
-    11: ("left_dexhand",  4, 830),  # 低6· = A3（左手无名指，需左移 7cm）
+# ===== 音符到关节的映射（新初始弹奏位姿） =====
+# 每个 stop 都记录“此时实际能按到”的音。hit_next 会优先留在当前 stop，
+# 只有当前手指覆盖不到该音时才移动手掌，避免为回原位而产生听感断裂。
+# 位置值沿用既有标定：食=830、中=850、无=830、小=700/600。
+
+# 左手原位：食=D4、中=C4、无=B3、小=A3。
+# 左手右移 5cm：食=F4、中=E4、无=D4、小=C4。
+# 左手左移 2.5cm：无=A3、小=G3（低八度 6→5 联奏）。
+LEFT_HAND_STOPS = {
+    "BASE": {
+        1: (3, 850),  # C4：中指
+        2: (2, 830),  # D4：食指
+        11: (5, 700), # A3：小拇指（单独低八度 6）
+    },
+    "RIGHT": {
+        1: (5, 700),  # C4：小拇指
+        2: (4, 830),  # D4：无名指；Mi 后的 Re 不需回原位
+        3: (3, 850),  # E4：中指
+        4: (2, 830),  # F4：食指
+    },
+    "LOW": {
+        10: (5, 700), # G3：小拇指
+        11: (4, 830), # A3：无名指（低八度 6→5 联奏）
+    },
+}
+LEFT_HAND_PREFERRED_STOP = {
+    1: "BASE", 2: "BASE", 3: "RIGHT", 4: "RIGHT",
+    10: "LOW", 11: "BASE",
+}
+
+# 右手原位：食=B4、中=C5、无=D5、小=E5。
+# 右手左移 5cm：食=G4、中=A4、无=B4、小=C5。
+RIGHT_HAND_STOPS = {
+    "BASE": {
+        7: (2, 830),  # B4：食指
+        8: (3, 850),  # C5：中指
+        9: (4, 830),  # D5：无名指
+    },
+    "LEFT": {
+        5: (2, 830),  # G4：食指
+        6: (3, 850),  # A4：中指
+        7: (4, 830),  # B4：无名指；La 后的 Si 不需回原位
+        8: (5, 600),  # C5：小拇指；La 后的高 Do 不需回原位
+    },
+}
+RIGHT_HAND_PREFERRED_STOP = {
+    5: "LEFT", 6: "LEFT", 7: "BASE", 8: "BASE", 9: "BASE",
 }
 
 
 def get_command_for_note(note):
-    """直接从 NOTE_MAP 查表。手部移位与否由 hit_next 中的 trigger 逻辑控制。"""
-    return NOTE_MAP.get(note)
+    """按两手当前停靠位返回实际应弯曲的手指；调用前必须已完成必要移位。"""
+    if note in LEFT_HAND_PREFERRED_STOP:
+        command = LEFT_HAND_STOPS[current_left_stop].get(note)
+        if command is None:
+            raise RuntimeError(f"左手 stop={current_left_stop} 未覆盖 note={note}")
+        joint_idx, position = command
+        return "left_dexhand", joint_idx, position
+
+    if note in RIGHT_HAND_PREFERRED_STOP:
+        command = RIGHT_HAND_STOPS[current_right_stop].get(note)
+        if command is None:
+            raise RuntimeError(f"右手 stop={current_right_stop} 未覆盖 note={note}")
+        joint_idx, position = command
+        return "right_dexhand", joint_idx, position
+
+    raise ValueError(f"未定义的 note={note}")
+
+
+def get_left_target_stop(note, next_note):
+    """返回左手本拍目标 stop；右手音与休止不移动左手。"""
+    if note == 0 or note not in LEFT_HAND_PREFERRED_STOP:
+        return current_left_stop
+    if note == 11 and next_note == 10:
+        return "LOW"
+    if note in LEFT_HAND_STOPS[current_left_stop]:
+        return current_left_stop
+    return LEFT_HAND_PREFERRED_STOP[note]
+
+
+def get_right_target_stop(note):
+    """返回右手本拍目标 stop；左手音与休止不移动右手。"""
+    if note == 0 or note not in RIGHT_HAND_PREFERRED_STOP:
+        return current_right_stop
+    if note in RIGHT_HAND_STOPS[current_right_stop]:
+        return current_right_stop
+    return RIGHT_HAND_PREFERRED_STOP[note]
 
 
 # ===== 茉莉花乐谱（简谱 → 事件序列） =====
@@ -86,7 +190,7 @@ SCORE = [
     # 6· 和 6 暂不处理（其他高八度音后续通过移动手解决）
 
 
-    # # -------伴奏--------
+    # -------伴奏--------
     # 好一朵美丽的茉莉花
     (3, 1), (3, 0.5), (5, 0.5), (6, 0.5), (8, 0.5), (8, 0.5), (6, 0.5),
     (5, 1), (5, 0.5), (6, 0.5), (5, 2),
@@ -271,7 +375,7 @@ def move_hand_to(motion, robot, target_pose, joint_group,
     )
     if status != MotionStatus.SUCCESS:
         print(f"[IK] 逆运动学失败 ({joint_group}): {status}")
-        return
+        return False
     joint_positions = positions[joint_group]
 
     # 2) 以指定速度驱动关节到目标角度（非阻塞）
@@ -283,6 +387,47 @@ def move_hand_to(motion, robot, target_pose, joint_group,
     )
     if status != ControlStatus.SUCCESS:
         print(f"[移位] {joint_group} set_joint_positions 失败: {status}")
+        return False
+    return True
+
+
+def get_origin_poses_with_retry(motion, max_retries=POSE_FETCH_MAX_RETRIES,
+                                retry_interval=POSE_FETCH_RETRY_INTERVAL):
+    """读取左右手末端原位；SDK 状态数据未就绪时按固定次数重试。
+
+    返回：
+        (left_pose, right_pose)，每个都是 7 元素位姿列表。
+
+    Raises:
+        RuntimeError: 经过全部重试后仍无法读取任一手位姿。
+    """
+    last_left_status = None
+    last_right_status = None
+    for attempt in range(1, max_retries + 1):
+        status_left, left_pose = motion.get_end_effector_pose_on_chain(
+            G1JointGroup.left_arm
+        )
+        status_right, right_pose = motion.get_end_effector_pose_on_chain(
+            G1JointGroup.right_arm
+        )
+        last_left_status = status_left
+        last_right_status = status_right
+
+        if status_left == MotionStatus.SUCCESS and status_right == MotionStatus.SUCCESS:
+            return list(left_pose), list(right_pose)
+
+        if status_left != MotionStatus.SUCCESS:
+            print(f"[重试 {attempt}/{max_retries}] 左手位姿获取失败: {status_left}")
+        if status_right != MotionStatus.SUCCESS:
+            print(f"[重试 {attempt}/{max_retries}] 右手位姿获取失败: {status_right}")
+        if attempt < max_retries:
+            time.sleep(retry_interval)
+
+    raise RuntimeError(
+        f"经过 {max_retries} 次重试仍无法获取手部原位："
+        f"left={last_left_status}, right={last_right_status}。"
+        "请确认机器人运动服务、双臂状态和 SDK 连接均正常。"
+    )
 
 
 # ===== 调度状态 =====
@@ -295,7 +440,9 @@ shutdown_event = threading.Event()
 left_origin_pose = None
 right_origin_pose = None
 left_hand_moved = False
-right_hand_moved = False  # 用于跨线程传递关闭信号（Ctrl+C 、异常等）
+right_hand_moved = False
+current_left_stop = "BASE"
+current_right_stop = "BASE"
 
 
 def hit_next(robot: GalbotRobot, motion: GalbotMotion):
@@ -309,6 +456,7 @@ def hit_next(robot: GalbotRobot, motion: GalbotMotion):
       · 2   拍事件间隔 2*0.7   = 1.4s
     """
     global idx, left_hand_moved, right_hand_moved
+    global current_left_stop, current_right_stop
     if idx >= MAX or shutdown_event.is_set():
         if idx >= MAX:
             finished.set()
@@ -321,53 +469,76 @@ def hit_next(robot: GalbotRobot, motion: GalbotMotion):
     else:
         note, duration, is_extended = event
 
-    # ===== 手部移位管理 =====
-    cur_needs_left = note in [10, 11]  # 低8度5/6才触发左移
-    cur_needs_right = note == 9
     next_note = SCORE[idx + 1][0] if idx + 1 < MAX else None
-    next_needs_left = (next_note in [10, 11]) if next_note is not None else False
-    next_needs_right = (next_note == 9) if next_note is not None else False
 
-    if cur_needs_left and not left_hand_moved:
-        target = list(left_origin_pose); target[1] += LEFT_HAND_OFFSET_LEFT
-        print(f"[手部] 左手左移 {LEFT_HAND_OFFSET_LEFT*100:.0f}cm")
-        move_hand_to(motion, robot, target, G1JointGroup.left_arm); time.sleep(HAND_MOVE_DELAY)
-        left_hand_moved = True
-    elif not cur_needs_left and not next_needs_left and left_hand_moved:
-        print("[手部] 左手回原位")
-        move_hand_to(motion, robot, list(left_origin_pose), G1JointGroup.left_arm); time.sleep(HAND_MOVE_DELAY)
-        left_hand_moved = False
+    # ===== 手部移位管理（按当前 stop 优先，减少不必要的往返） =====
+    # 例如左手右移弹 Mi 后，无名指仍在 Re，因此下一音 Re 留在 RIGHT stop。
+    # 右手左移弹 La 后，无名指/小拇指仍在 Si/高 Do，也不需要立刻回原位。
+    target_left_stop = get_left_target_stop(note, next_note)
+    target_right_stop = get_right_target_stop(note)
+    shift_failed = False
 
-    if cur_needs_right and not right_hand_moved:
-        target = list(right_origin_pose); target[1] += RIGHT_HAND_OFFSET_RIGHT
-        print(f"[手部] 右手右移 {-RIGHT_HAND_OFFSET_RIGHT*100:.0f}cm")
-        move_hand_to(motion, robot, target, G1JointGroup.right_arm); time.sleep(HAND_MOVE_DELAY)
-        right_hand_moved = True
-    elif not cur_needs_right and not next_needs_right and right_hand_moved:
-        print("[手部] 右手回原位")
-        move_hand_to(motion, robot, list(right_origin_pose), G1JointGroup.right_arm); time.sleep(HAND_MOVE_DELAY)
-        right_hand_moved = False
+    left_stop_offsets = {
+        "BASE": 0.0,
+        "RIGHT": LEFT_HAND_OFFSET_RIGHT,
+        "LOW": LEFT_HAND_OFFSET_LOW,
+    }
+    left_stop_labels = {
+        "BASE": "原位",
+        "RIGHT": "右移 5cm",
+        "LOW": "左移 2.5cm",
+    }
+    if target_left_stop != current_left_stop:
+        print(f"[手部] 左手 {left_stop_labels[current_left_stop]} -> "
+              f"{left_stop_labels[target_left_stop]}")
+        target = list(left_origin_pose)
+        target[1] += left_stop_offsets[target_left_stop]
+        if move_hand_to(motion, robot, target, G1JointGroup.left_arm):
+            time.sleep(HAND_MOVE_DELAY)
+            current_left_stop = target_left_stop
+            left_hand_moved = current_left_stop != "BASE"
+        else:
+            shift_failed = True
+
+    right_stop_offsets = {"BASE": 0.0, "LEFT": RIGHT_HAND_OFFSET_LEFT}
+    right_stop_labels = {"BASE": "原位", "LEFT": "左移 5cm"}
+    if target_right_stop != current_right_stop:
+        print(f"[手部] 右手 {right_stop_labels[current_right_stop]} -> "
+              f"{right_stop_labels[target_right_stop]}")
+        target = list(right_origin_pose)
+        target[1] += right_stop_offsets[target_right_stop]
+        if move_hand_to(motion, robot, target, G1JointGroup.right_arm):
+            time.sleep(HAND_MOVE_DELAY)
+            current_right_stop = target_right_stop
+            right_hand_moved = current_right_stop != "BASE"
+        else:
+            shift_failed = True
 
     target_press = duration * RESET_DELAY
     actual_time = target_press  # 不再“补足”到 RESET_DELAY
 
     if note != 0:
-        end_effector, joint_idx, position = get_command_for_note(note)
-        hit(robot, end_effector, generateDexhandCommands(joint_idx, position))
-        if target_press < RESET_DELAY:
-            # 短音符：直接按 target_press 时间释放（保留连音效果）
+        if shift_failed:
+            # 移位失败不能按键，否则会在旧停靠位触发错误琴键。
+            print(f"[跳过] note={note} 移位失败，本拍不按键")
             time.sleep(target_press)
-            hit(robot, end_effector, generateDexhandCommands(0, 1000))
         else:
-            time.sleep(RESET_DELAY)
-            if target_press > RESET_DELAY:
-                time.sleep(target_press - RESET_DELAY)
-            if is_extended:
-                time.sleep(RESET_DELAY)
+            end_effector, joint_idx, position = get_command_for_note(note)
+            hit(robot, end_effector, generateDexhandCommands(joint_idx, position))
+            if target_press < RESET_DELAY:
+                # 短音符：直接按 target_press 时间释放（保留连音效果）
+                time.sleep(target_press)
                 hit(robot, end_effector, generateDexhandCommands(0, 1000))
-                actual_time += RESET_DELAY
             else:
-                hit(robot, end_effector, generateDexhandCommands(0, 1000))
+                time.sleep(RESET_DELAY)
+                if target_press > RESET_DELAY:
+                    time.sleep(target_press - RESET_DELAY)
+                if is_extended:
+                    time.sleep(RESET_DELAY)
+                    hit(robot, end_effector, generateDexhandCommands(0, 1000))
+                    actual_time += RESET_DELAY
+                else:
+                    hit(robot, end_effector, generateDexhandCommands(0, 1000))
     else:
         time.sleep(target_press)
 
@@ -397,11 +568,13 @@ def main():
       7) finally：重置手部 + 释放机器人资源（try/except 保证不卡死）
     """
     global idx, left_origin_pose, right_origin_pose, left_hand_moved, right_hand_moved
+    global current_left_stop, current_right_stop
     robot = GalbotRobot()
     robot.init()
     motion = GalbotMotion()
     motion.init()
-    time.sleep(1)
+    # motion 服务比灵巧手上电稍晚就绪；首次位姿读取前留出稳定时间。
+    time.sleep(MOTION_STARTUP_DELAY)
 
     try:
         # 弹奏前的初始姿势：双手全张开
@@ -410,14 +583,8 @@ def main():
         hit(robot, "right_dexhand", init_cmds)
         time.sleep(0.5)
 
-        # 捕获当前左右手末端位姿作为原始位姿
-        status, l = motion.get_end_effector_pose_on_chain(G1JointGroup.left_arm)
-        if status != MotionStatus.SUCCESS:
-            raise RuntimeError(f"get left origin pose failed: {status}")
-        status, r = motion.get_end_effector_pose_on_chain(G1JointGroup.right_arm)
-        if status != MotionStatus.SUCCESS:
-            raise RuntimeError(f"get right origin pose failed: {status}")
-        left_origin_pose = list(l); right_origin_pose = list(r)
+        # 捕获当前左右手末端位姿作为原始位姿；SDK 首次查询可能暂未有数据。
+        left_origin_pose, right_origin_pose = get_origin_poses_with_retry(motion)
         print(f"[初始化] 左手原位: {left_origin_pose}")
         print(f"[初始化] 右手原位: {right_origin_pose}")
 
@@ -425,6 +592,8 @@ def main():
         idx = 0
         left_hand_moved = False
         right_hand_moved = False
+        current_left_stop = "BASE"
+        current_right_stop = "BASE"
         finished.clear()
         shutdown_event.clear()
 
@@ -438,9 +607,11 @@ def main():
         # 弹奏完毕后恢复弹奏前姿势
         if not shutdown_event.is_set():
             if left_hand_moved:
-                move_hand_to(motion, robot, list(left_origin_pose), G1JointGroup.left_arm)
+                if move_hand_to(motion, robot, list(left_origin_pose), G1JointGroup.left_arm):
+                    current_left_stop = "BASE"
             if right_hand_moved:
-                move_hand_to(motion, robot, list(right_origin_pose), G1JointGroup.right_arm)
+                if move_hand_to(motion, robot, list(right_origin_pose), G1JointGroup.right_arm):
+                    current_right_stop = "BASE"
             if left_hand_moved or right_hand_moved:
                 time.sleep(HAND_MOVE_DELAY)
             reset_hands(robot)
