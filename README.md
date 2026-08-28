@@ -107,6 +107,16 @@ python piano_extended.py
 python molihua_hand_move.py
 ```
 
+### 本地 Web 调试台
+
+仓库提供无需额外 Web 框架的本地调试页面，可查看机器人连接状态、选择曲目、启动/软停止演奏，并发送双灵巧手安全归零指令：
+
+```bash
+python webui/server.py
+```
+
+访问 `http://127.0.0.1:8080`。详情见 [webui/README.md](webui/README.md)。当前“姿态归零”仅覆盖双灵巧手安全张开，不会擅自执行未经真机确认的全身关节归零。
+
 灵巧手会自动：
 1. 初始化为全张开状态
 2. 按时间线按下 / 归位对应手指
