@@ -1,0 +1,643 @@
+<mujoco model="galbot_g1_v2_2_1">
+  <default>
+    <default class="robot">
+      <default class="omni_chassis">
+        <joint stiffness="0.05" armature="0.001" damping="0.5" frictionloss="0.5" />
+        <position kp="10000.0" kv="2000.0" gear="1.0" forcerange="-845.0 845.0" />
+      </default>
+      <default class="leg">
+        <joint stiffness="0.05" armature="0.001" damping="0.5" frictionloss="0.5" />
+        <position kp="10000.0" kv="2000.0" gear="1.0" forcerange="-845.0 845.0" />
+      </default>
+      <default class="torso">
+        <joint stiffness="0.05" armature="0.001" damping="0.5" frictionloss="0.5" />
+        <position kp="500.0" kv="100.0" gear="1.0" forcerange="-4.0 4.0" />
+      </default>
+      <default class="left_arm">
+        <joint stiffness="0.05" armature="0.001" damping="0.5" frictionloss="0.5" />
+        <position kp="3000.0" kv="200.0" gear="1.0" forcerange="-60.0 60.0" />
+      </default>
+      <default class="right_arm">
+        <joint stiffness="0.05" armature="0.001" damping="0.5" frictionloss="0.5" />
+        <position kp="3000.0" kv="200.0" gear="1.0" forcerange="-60.0 60.0" />
+      </default>
+      <default class="head">
+        <joint stiffness="0.05" armature="0.001" damping="0.5" frictionloss="0.5" />
+        <position kp="500.0" kv="100.0" gear="1.0" forcerange="-4.0 4.0" />
+      </default>
+      <default class="left_tool">
+        <joint stiffness="0.05" armature="0.001" damping="0.5" frictionloss="0.5" />
+        <position kp="5000.0" kv="200.0" forcerange="-5.0 5.0" />
+      </default>
+      <default class="right_tool">
+        <joint stiffness="0.05" armature="0.001" damping="0.5" frictionloss="0.5" />
+        <position kp="5000.0" kv="200.0" forcerange="-5.0 5.0" />
+      </default>
+      <default class="visual">
+        <geom material="visualgeom" contype="0" conaffinity="0" group="2" />
+      </default>
+      <default class="collision">
+        <geom material="collision_material" condim="3" contype="0" conaffinity="1" priority="1" group="3" solref="0.005 1" friction="1 0.01 0.01" />
+        <equality solimp="0.99 0.999 1e-05" solref="0.005 1" />
+      </default>
+    </default>
+    <default class="floor">
+      <geom type="plane" size="0 0 0.05" material="groundplane" />
+    </default>
+  </default>
+
+  <compiler angle="radian" meshdir="." balanceinertia="true" />
+
+  <size nconmax="5000" njmax="5000" />
+
+  <option timestep="0.001" gravity="0 0 -9.81" density="0" impratio="20" viscosity="0.00002" integrator="implicitfast" cone="elliptic" jacobian="auto" solver="Newton" iterations="100" tolerance="1e-8" />
+
+  <worldbody>
+    <body name="base_link" pos="0.00000000 0.00000000 0.00000000" quat="1 0 0 0" childclass="robot">
+      <body name="omni_chassis_base_link" pos="0.0 0.0 0.0" quat="1.0 0.0 0.0 0.0">
+        <inertial pos="0.02644 -0.00449 0.07524" quat="1.0 0.0 0.0 0.0" mass="8.04" diaginertia="0.19508898000000002 0.29573702 0.3313144" />
+        <geom name="omni_chassis_base_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="omni_chassis_base_link.stl" class="collision" />
+        <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="omni_chassis_base_link_visual_0" mesh="omni_chassis_base_link_0" material="omni_chassis_base_link_light_silver" />
+        <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="omni_chassis_base_link_visual_1" mesh="omni_chassis_base_link_1" material="omni_chassis_base_link_plastic_gary" />
+        <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="omni_chassis_base_link_visual_2" mesh="omni_chassis_base_link_2" material="head_link1_plastic_black.001" />
+        <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="omni_chassis_base_link_visual_3" mesh="omni_chassis_base_link_3" material="omni_chassis_base_link_metal_aluminum" />
+        <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="omni_chassis_base_link_visual_4" mesh="omni_chassis_base_link_4" material="omni_chassis_base_link_camera" />
+        <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="omni_chassis_base_link_visual_5" mesh="omni_chassis_base_link_5" material="omni_chassis_base_link_medium_yellow" />
+        <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="omni_chassis_base_link_visual_6" mesh="omni_chassis_base_link_6" material="omni_chassis_base_link_green_light" />
+        <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="omni_chassis_base_link_visual_7" mesh="omni_chassis_base_link_7" material="right_arm_link2_glacier_white" />
+        <body name="omni_chassis_leg_mount_link" pos="0.134 0.0 0.1325" quat="1.0 0.0 0.0 0.0">
+          <inertial pos="0.0 0.0 0.0" quat="1.0 0.0 0.0 0.0" mass="0.0" diaginertia="0.0 0.0 0.0" />
+          <body name="leg_base_link" pos="0.0 0.0 0.0" quat="1.0 0.0 0.0 0.0">
+            <inertial pos="7.000000000000001e-05 -0.05414 0.0" quat="1.0 0.0 0.0 0.0" mass="1.58" diaginertia="0.00797474 0.00248067 0.00797203" />
+            <body name="leg_link1" pos="0.0 0.0 0.0" quat="-0.13527894082858502 0.13527894082858516 0.6940458256976235 0.6940458256976236">
+              <inertial pos="0.21883000000000002 0.00219 -0.0046" quat="1.0 0.0 0.0 0.0" mass="5.28" diaginertia="0.0245158 0.46437793 0.46079615" />
+              <joint name="leg_joint1" type="hinge" class="leg" range="0.0 0.9374" axis="0.0 0.0 1.0" />
+              <geom name="leg_link1_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="leg_link1.stl" class="collision" />
+              <geom name="leg_link1_visual" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="leg_link1.obj" material="leg_link1_metal_black" class="visual" />
+              <body name="leg_link2" pos="0.450988505442789 0.000000000000000 0.000000000000000" quat="0.00016903961587201263 0.18920425905084681 0.98193757640588175 0.00056198289241159876">
+                <inertial pos="0.19484 0.0 0.0" quat="1.0 0.0 0.0 0.0" mass="3.3" diaginertia="0.04156241 0.23231617000000002 0.20323657" />
+                <joint name="leg_joint2" type="hinge" class="leg" range="0.0 2.5847" axis="0.0 0.0 1.0" />
+                <geom name="leg_link2_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="leg_link2.stl" class="collision" />
+                <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="leg_link2_visual_0" mesh="leg_link2_0" material="leg_link2_diffuse" />
+                <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="leg_link2_visual_1" mesh="leg_link2_1" material="leg_link2_White_silk_screen" />
+                <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="leg_link2_visual_2" mesh="leg_link2_2" material="leg_link1_metal_black" />
+                <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="leg_link2_visual_3" mesh="leg_link2_3" material="right_arm_link2_glacier_white" />
+                <body name="leg_link3" pos="0.390185758584177 0.000000000000000 0.000000000000000" quat="-0.00045762311937985213 -0.0039989259957293527 0.99999184697036037 -0.00032429117875153537">
+                  <inertial pos="2e-05 0.01881 -0.011" quat="1.0 0.0 0.0 0.0" mass="1.76" diaginertia="0.01102444 0.00878281 0.0106222" />
+                  <joint name="leg_joint3" type="hinge" class="leg" range="0.0 2.3262" axis="0.0 0.0 1.0" />
+                  <geom name="leg_link3_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="leg_link3.stl" class="collision" />
+                  <geom name="leg_link3_visual" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="leg_link3.obj" material="leg_link1_metal_black" class="visual" />
+                  <body name="leg_link4" pos="0.000560410807169 0.224822856326652 -0.000541899414468" quat="0.49971405705086092 -0.50091998919012526 -0.50028424988835662 -0.4990798482499349">
+                    <inertial pos="0.0 -0.0059900000000000005 -0.06877" quat="1.0 0.0 0.0 0.0" mass="0.72" diaginertia="0.00580757 0.00591483 0.0014004900000000001" />
+                    <joint name="leg_joint4" type="hinge" class="leg" range="-1.5906 1.5906" axis="0.0 0.0 1.0" />
+                    <geom name="leg_link4_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="leg_link4.stl" class="collision" />
+                    <geom name="leg_link4_visual" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="leg_link4.obj" material="leg_link1_metal_black" class="visual" />
+                    <body name="leg_link5" pos="0.000063929899842 0.000000000000000 0.000000000000000" quat="0.70925414610992477 0.70495287518094529 0 0">
+                      <inertial pos="0.0 0.032369999999999996 0.03006" quat="1.0 0.0 0.0 0.0" mass="0.41" diaginertia="0.00142201 0.00132398 0.00156199" />
+                      <joint name="leg_joint5" type="hinge" class="leg" range="-0.1645 0.1645" axis="0.0 0.0 1.0" />
+                      <geom name="leg_link5_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="leg_link5.stl" class="collision" />
+                      <geom name="leg_link5_visual" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="leg_link5.obj" material="leg_link1_metal_black" class="visual" />
+                      <body name="leg_end_effector_mount_link" pos="0.0 0.0 0.0" quat="1.0 0.0 0.0 0.0">
+                        <inertial pos="0.0 0.0 0.0" quat="1.0 0.0 0.0 0.0" mass="0.0" diaginertia="0.0 0.0 0.0" />
+                        <body name="torso_base_link" pos="0.0 0.0 0.0" quat="1.0 0.0 0.0 0.0">
+                          <inertial pos="-4e-05 0.16976 -0.00174" quat="1.0 0.0 0.0 0.0" mass="3.3" diaginertia="0.13068739999999998 0.01888968 0.13964288" />
+                          <geom name="torso_base_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="torso_base_link.stl" class="collision" />
+                          <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="torso_base_link_visual_0" mesh="torso_base_link_0" material="torso_base_link_emergency_stop_switch" />
+                          <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="torso_base_link_visual_1" mesh="torso_base_link_1" material="omni_chassis_base_link_plastic_gary" />
+                          <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="torso_base_link_visual_2" mesh="torso_base_link_2" material="omni_chassis_base_link_medium_yellow" />
+                          <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="torso_base_link_visual_3" mesh="torso_base_link_3" material="omni_chassis_base_link_metal_aluminum" />
+                          <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="torso_base_link_visual_4" mesh="torso_base_link_4" material="head_link1_plastic_black.001" />
+                          <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="torso_base_link_visual_5" mesh="torso_base_link_5" material="torso_base_link_white_light" />
+                          <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="torso_base_link_visual_6" mesh="torso_base_link_6" material="omni_chassis_base_link_camera" />
+                          <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="torso_base_link_visual_7" mesh="torso_base_link_7" material="omni_chassis_base_link_light_silver" />
+                          <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="torso_base_link_visual_8" mesh="torso_base_link_8" material="torso_base_link_Emergency_stop_tail" />
+                          <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="torso_base_link_visual_9" mesh="torso_base_link_9" material="right_arm_link2_glacier_white" />
+                          <body name="torso_head_mount_link" pos="0.000033103163821 0.377832223677453 0.001945987594256" quat="0.50066441849253307 -0.49788460119081396 -0.49956066484054429 -0.50188166543187385">
+                            <inertial pos="0.0 0.0 0.0" quat="1.0 0.0 0.0 0.0" mass="0.0" diaginertia="0.0 0.0 0.0" />
+                            <body name="head_base_link" pos="0.0 0.0 0.0" quat="1.0 0.0 0.0 0.0">
+                              <inertial pos="0.023809999999999998 0.00032 0.01966" quat="1.0 0.0 0.0 0.0" mass="0.48" diaginertia="0.0032910599999999997 0.00375998 0.00221683" />
+                              <body name="head_link1" pos="0.0 0.0 0.0" quat="1.0 0.0 0.0 0.0">
+                                <inertial pos="-2e-05 0.00709 -0.0559" quat="1.0 0.0 0.0 0.0" mass="1.5695" diaginertia="0.0069002956 0.00683300359 0.00116967635" />
+                                <joint name="head_joint1" type="hinge" class="head" range="-1.5208 1.5208" axis="0.0 0.0 1.0" />
+                                <geom name="head_link1_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="head_link1.stl" class="collision" />
+                                <geom name="head_link1_visual" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="head_link1.obj" material="head_link1_plastic_black.001" class="visual" />
+                                <body name="head_link2" pos="0.000550922507958 0.000000000000000 0.000000000000000" quat="0.70721122277753667 -0.70700232416697284 0 0">
+                                  <inertial pos="0.01835 -0.033479999999999996 0.00642" quat="1.0 0.0 0.0 0.0" mass="0.81" diaginertia="3.99161e-06 3.72602e-06 5.53062e-06" />
+                                  <joint name="head_joint2" type="hinge" class="head" range="-0.2143461 0.4935988" axis="0.0 0.0 1.0" />
+                                  <geom name="head_link2_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="head_link2.stl" class="collision" />
+                                  <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="head_link2_visual_0" mesh="head_link2_0" material="head_link2_glacier_428c" />
+                                  <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="head_link2_visual_1" mesh="head_link2_1" material="right_arm_link2_glacier_white" />
+                                  <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="head_link2_visual_2" mesh="head_link2_2" material="omni_chassis_base_link_camera" />
+                                  <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="head_link2_visual_3" mesh="head_link2_3" material="torso_base_link_white_light" />
+                                  <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="head_link2_visual_4" mesh="head_link2_4" material="head_link1_plastic_black.001" />
+                                  <body name="head_end_effector_mount_link" pos="0.0 0.0 0.0" quat="1.0 0.0 0.0 0.0">
+                                    <inertial pos="0.0 0.0 0.0" quat="1.0 0.0 0.0 0.0" mass="0.0" diaginertia="0.0 0.0 0.0" />
+                                  </body>
+                                </body>
+                              </body>
+                            </body>
+                          </body>
+                          <body name="torso_left_arm_mount_link" pos="0.208277140849775 0.172955832519445 0.001955129377396" quat="0.708222010608337 0.0043556117333722333 0.70597357580311437 0.0019805565068952702">
+                            <inertial pos="0.0 0.0 0.0" quat="1.0 0.0 0.0 0.0" mass="0.0" diaginertia="0.0 0.0 0.0" />
+                            <body name="left_arm_base_link" pos="0.0 0.0 0.0" quat="1.0 0.0 0.0 0.0">
+                              <inertial pos="0.0 0.0 -0.10506" quat="1.0 0.0 0.0 0.0" mass="0.92" diaginertia="0.01075595 0.01077842 0.0007042000000000001" />
+                              <body name="left_arm_link1" pos="0.000000000000000 0.000000000000000 0.000000000000000" quat="0.96592566783964773 0 0 0.2588196364430847">
+                                <inertial pos="0.0 0.0009699999999999999 -0.015390000000000001" quat="1.0 0.0 0.0 0.0" mass="1.6" diaginertia="0.00332981 0.00339121 0.0016524" />
+                                <joint name="left_arm_joint1" type="hinge" class="left_arm" range="-3.00432619 3.00432619" axis="0.0 0.0 1.0" />
+                                <geom name="left_arm_link1_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="left_arm_link1.stl" class="collision" />
+                                <geom name="left_arm_link1_visual" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="left_arm_link1.obj" material="leg_link1_metal_black" class="visual" />
+                                <body name="left_arm_link2" pos="-0.000180195258291 -0.000267440248363 0.000000224602013" quat="0.0035681143493758861 -0.0035711121860468932 0.70739462653595175 0.70680079093462111">
+                                  <inertial pos="0.0 0.09558 0.010150000000000001" quat="1.0 0.0 0.0 0.0" mass="1.43" diaginertia="0.01937881 0.0015791400000000001 0.018951810000000003" />
+                                  <joint name="left_arm_joint2" type="hinge" class="left_arm" range="-1.608062789 1.608062789" axis="0.0 0.0 1.0" />
+                                  <geom name="left_arm_link2_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="left_arm_link2.stl" class="collision" />
+                                  <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_arm_link2_visual_0" mesh="left_arm_link2_0" material="head_link1_plastic_black.001" />
+                                  <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_arm_link2_visual_1" mesh="left_arm_link2_1" material="right_arm_link2_glacier_white" />
+                                  <body name="left_arm_link3" pos="-0.000492417287297 0.350489183085992 0.000597816085648" quat="-0.35426058070726479 0.35365684721370744 -0.61161589633755553 -0.61265999601983201">
+                                    <inertial pos="0.0 0.00088 -0.04936" quat="1.0 0.0 0.0 0.0" mass="1.43" diaginertia="0.01187457 0.01178759 0.0013715" />
+                                    <joint name="left_arm_joint3" type="hinge" class="left_arm" range="-2.916972222 2.916972222" axis="0.0 0.0 1.0" />
+                                    <geom name="left_arm_link3_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="left_arm_link3.stl" class="collision" />
+                                    <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_arm_link3_visual_0" mesh="left_arm_link3_0" material="omni_chassis_base_link_light_silver" />
+                                    <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_arm_link3_visual_1" mesh="left_arm_link3_1" material="omni_chassis_base_link_metal_aluminum" />
+                                    <body name="left_arm_link4" pos="0.000178242653884 -0.000532017323051 -0.000001268108855" quat="-0.0013123006278381655 0.0013091763747971432 -0.70626234263138787 -0.70794778571947392">
+                                      <inertial pos="0.0 0.05614 0.019170000000000003" quat="1.0 0.0 0.0 0.0" mass="1.1" diaginertia="0.00701388 0.00161854 0.0065011999999999995" />
+                                      <joint name="left_arm_joint4" type="hinge" class="left_arm" range="-2.5679938779914946 1.869862177" axis="0.0 0.0 1.0" />
+                                      <geom name="left_arm_link4_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="left_arm_link4.stl" class="collision" />
+                                      <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_arm_link4_visual_0" mesh="left_arm_link4_0" material="omni_chassis_base_link_metal_aluminum" />
+                                      <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_arm_link4_visual_1" mesh="left_arm_link4_1" material="right_arm_link2_glacier_white" />
+                                      <body name="left_arm_link5" pos="-0.001367999837703 0.360904011664349 0.001228096299505" quat="0.70830726691675139 -0.70590111597636251 -0.0014857694058865165 -0.0014908338339945052">
+                                        <inertial pos="0.00044 0.0016899999999999999 -0.13306" quat="1.0 0.0 0.0 0.0" mass="1.15" diaginertia="0.025809930000000002 0.02530313 0.00115848" />
+                                        <joint name="left_arm_joint5" type="hinge" class="left_arm" range="-2.916972222 2.916972222" axis="0.0 0.0 1.0" />
+                                        <geom name="left_arm_link5_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="left_arm_link5.stl" class="collision" />
+                                        <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_arm_link5_visual_0" mesh="left_arm_link5_0" material="omni_chassis_base_link_light_silver" />
+                                        <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_arm_link5_visual_1" mesh="left_arm_link5_1" material="right_arm_link2_glacier_white" />
+                                        <body name="left_arm_link6" pos="0.001078003762675 -0.000210001606027 0.000000024684414" quat="0.49997294974748402 0.49991418441526669 0.50002703552413486 -0.50008581412210062">
+                                          <inertial pos="-0.00088 -0.0072699999999999996 -0.00011999999999999999" quat="1.0 0.0 0.0 0.0" mass="0.47" diaginertia="0.00027557 0.00028977999999999995 0.00029684" />
+                                          <joint name="left_arm_joint6" type="hinge" class="left_arm" range="-0.8226646259971648 0.7353981633974483" axis="0.0 0.0 1.0" />
+                                          <geom name="left_arm_link6_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="left_arm_link6.stl" class="collision" />
+                                          <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_arm_link6_visual_0" mesh="left_arm_link6_0" material="omni_chassis_base_link_light_silver" />
+                                          <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_arm_link6_visual_1" mesh="left_arm_link6_1" material="right_arm_link2_glacier_white" />
+                                          <body name="left_arm_link7" pos="0.000140815235023 0.000000000000000 0.000000000000000" quat="0.7064641827082464 0.70774879621965403 0 0">
+                                            <inertial pos="-0.05776 -0.00675 0.011349999999999999" quat="1.0 0.0 0.0 0.0" mass="0.8" diaginertia="0.00116375 0.00424012 0.00418879" />
+                                            <joint name="left_arm_joint7" type="hinge" class="left_arm" range="-1.538202778 1.538202778" axis="0.0 0.0 1.0" />
+                                            <geom name="left_arm_link7_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="left_arm_link7.stl" class="collision" />
+                                            <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_arm_link7_visual_0" mesh="left_arm_link7_0" material="omni_chassis_base_link_light_silver" />
+                                            <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_arm_link7_visual_1" mesh="left_arm_link7_1" material="omni_chassis_base_link_metal_aluminum" />
+                                            <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_arm_link7_visual_2" mesh="left_arm_link7_2" material="right_arm_link2_glacier_white" />
+                                            <body name="left_arm_end_effector_mount_link" pos="-0.109616438481626 0.000081547509095 -0.000224119855764" quat="-0.0031551636365869723 0.0065917197473633095 0.99995033258694976 -0.0067769117190010506">
+                                              <inertial pos="0.0 0.0 0.0" quat="1.0 0.0 0.0 0.0" mass="0.0" diaginertia="0.0 0.0 0.0" />
+                                              <!-- Actual installation: +90 degrees about local X when viewed from +X toward -X. -->
+                                              <body name="left_gripper_flange_link" pos="0 0 0" quat="0.7071067811865476 0.7071067811865475 0.0 0.0">
+                                                <inertial pos="0.0030662 -1.4019e-18 3.383e-18" quat="1.0 0.0 0.0 0.0" mass="0.031005" diaginertia="2.2585e-05 1.141e-05 1.141e-05" />
+                                                <geom name="left_gripper_flange_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="left_gripper_flange_link.stl" class="collision" />
+                                                <geom name="left_gripper_flange_link_visual" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="left_gripper_flange_link.obj" material="leg_link1_metal_black" class="visual" />
+                                                <body name="left_gripper_base_link" pos="0.0065 0.0 0.0" quat="1.0 0.0 0.0 0.0">
+                                                  <inertial pos="0.037051 -6.4001e-05 6.4706e-05" quat="1.0 0.0 0.0 0.0" mass="0.061747" diaginertia="2.5813e-05 7.2859e-05 5.7173e-05" />
+                                                  <geom name="left_gripper_base_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="left_gripper_base_link.stl" class="collision" />
+                                                  <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_gripper_base_link_visual_0" mesh="left_gripper_base_link_0" material="head_link1_plastic_black.001" />
+                                                  <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_gripper_base_link_visual_1" mesh="left_gripper_base_link_1" material="leg_link1_metal_black" />
+                                                  <body name="left_gripper_l_knuckle_link" pos="0.0745 0.0 -0.0385" quat="0.5741606635851662 0.5741606635851662 0.41272210068209536 -0.4127221006820953">
+                                                    <inertial pos="0.024101 0.0 0.0" quat="1.0 0.0 0.0 0.0" mass="0.0070682" diaginertia="9.2131e-08 1.559e-06 1.4931e-06" />
+                                                    <joint name="left_gripper_l_knuckle_joint" type="hinge" range="-3.13 3.13" axis="0.0 0.0 1.0" />
+                                                    <geom name="left_gripper_l_knuckle_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="left_gripper_l_knuckle_link.stl" class="collision" />
+                                                    <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_gripper_l_knuckle_link_visual_0" mesh="left_gripper_l_knuckle_link_0" material="omni_chassis_base_link_light_silver" />
+                                                    <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_gripper_l_knuckle_link_visual_1" mesh="left_gripper_l_knuckle_link_1" material="omni_chassis_base_link_metal_aluminum" />
+                                                  </body>
+                                                  <body name="left_gripper_l_inner_knuckle_link" pos="0.079 0.0 -0.026" quat="0.5741606635851662 0.5741606635851662 0.41272210068209536 -0.4127221006820953">
+                                                    <inertial pos="0.023769 0.0 0.0" quat="1.0 0.0 0.0 0.0" mass="0.007802" diaginertia="1.044e-07 1.6385e-06 1.566e-06" />
+                                                    <joint name="left_gripper_l_inner_knuckle_joint" type="hinge" range="-3.13 3.13" axis="0.0 0.0 1.0" />
+                                                    <geom name="left_gripper_l_inner_knuckle_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="left_gripper_l_inner_knuckle_link.stl" class="collision" />
+                                                    <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_gripper_l_inner_knuckle_link_visual_0" mesh="left_gripper_l_inner_knuckle_link_0" material="omni_chassis_base_link_light_silver" />
+                                                    <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_gripper_l_inner_knuckle_link_visual_1" mesh="left_gripper_l_inner_knuckle_link_1" material="omni_chassis_base_link_metal_aluminum" />
+                                                    <body name="left_gripper_l_finger_link" pos="0.045 0.0 0.0" quat="0.811985797423278 0.0 0.0 0.5836771922757332">
+                                                      <inertial pos="0.016809 0.0019094 0.0" quat="1.0 0.0 0.0 0.0" mass="0.015957" diaginertia="5.5426e-07 1.8538e-06 1.5262e-06" />
+                                                      <joint name="left_gripper_l_finger_joint" type="hinge" range="-3.13 3.13" axis="0.0 0.0 1.0" />
+                                                      <geom name="left_gripper_l_finger_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="left_gripper_l_finger_link.stl" class="collision" />
+                                                      <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_gripper_l_finger_link_visual_0" mesh="left_gripper_l_finger_link_0" material="omni_chassis_base_link_metal_aluminum" />
+                                                      <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_gripper_l_finger_link_visual_1" mesh="left_gripper_l_finger_link_1" material="omni_chassis_base_link_light_silver" />
+                                                      <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_gripper_l_finger_link_visual_2" mesh="left_gripper_l_finger_link_2" material="head_link1_plastic_black.001" />
+                                                    </body>
+                                                  </body>
+                                                  <body name="left_gripper_r_knuckle_link" pos="0.0745 0.0 0.0385" quat="0.5741606635851662 0.5741606635851662 -0.41272210068209536 0.4127221006820953">
+                                                    <inertial pos="0.024101 0.0 0.0" quat="1.0 0.0 0.0 0.0" mass="0.0070682" diaginertia="9.2131e-08 1.559e-06 1.4931e-06" />
+                                                    <joint name="left_gripper_r_knuckle_joint" type="hinge" range="0.0 1.703" axis="0.0 0.0 -1.0" />
+                                                    <geom name="left_gripper_r_knuckle_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="left_gripper_r_knuckle_link.stl" class="collision" />
+                                                    <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_gripper_r_knuckle_link_visual_0" mesh="left_gripper_r_knuckle_link_0" material="omni_chassis_base_link_light_silver" />
+                                                    <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_gripper_r_knuckle_link_visual_1" mesh="left_gripper_r_knuckle_link_1" material="omni_chassis_base_link_metal_aluminum" />
+                                                  </body>
+                                                  <body name="left_gripper_r_inner_knuckle_link" pos="0.079 0.0 0.026" quat="0.5741606635851662 0.5741606635851662 -0.41272210068209536 0.4127221006820953">
+                                                    <inertial pos="0.023769 0.0 0.0" quat="1.0 0.0 0.0 0.0" mass="0.007802" diaginertia="1.044e-07 1.6385e-06 1.566e-06" />
+                                                    <joint name="left_gripper_r_inner_knuckle_joint" type="hinge" range="-3.13 3.13" axis="0.0 0.0 1.0" />
+                                                    <geom name="left_gripper_r_inner_knuckle_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="left_gripper_r_inner_knuckle_link.stl" class="collision" />
+                                                    <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_gripper_r_inner_knuckle_link_visual_0" mesh="left_gripper_r_inner_knuckle_link_0" material="omni_chassis_base_link_light_silver" />
+                                                    <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_gripper_r_inner_knuckle_link_visual_1" mesh="left_gripper_r_inner_knuckle_link_1" material="omni_chassis_base_link_metal_aluminum" />
+                                                    <body name="left_gripper_r_finger_link" pos="0.045 0.0 0.0" quat="0.811985797423278 0.0 0.0 -0.5836771922757332">
+                                                      <inertial pos="0.016809 -0.0019094 0.0" quat="1.0 0.0 0.0 0.0" mass="0.015957" diaginertia="5.5426e-07 1.8538e-06 1.5262e-06" />
+                                                      <joint name="left_gripper_r_finger_joint" type="hinge" range="-3.13 3.13" axis="0.0 0.0 1.0" />
+                                                      <geom name="left_gripper_r_finger_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="left_gripper_r_finger_link.stl" class="collision" />
+                                                      <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_gripper_r_finger_link_visual_0" mesh="left_gripper_r_finger_link_0" material="omni_chassis_base_link_light_silver" />
+                                                      <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_gripper_r_finger_link_visual_1" mesh="left_gripper_r_finger_link_1" material="omni_chassis_base_link_metal_aluminum" />
+                                                      <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_gripper_r_finger_link_visual_2" mesh="left_gripper_r_finger_link_2" material="head_link1_plastic_black.001" />
+                                                    </body>
+                                                  </body>
+                                                  <body name="left_gripper_tcp_link" pos="0.13996 0.0 0.0" quat="0.7071067811865476 -0.7071067811865475 0.0 0.0">
+                                                    <inertial pos="0 0 0" quat="1.0 0.0 0.0 0.0" mass="0.0" diaginertia="0.0 0.0 0.0" />
+                                                  </body>
+                                                </body>
+                                              </body>
+                                            </body>
+                                            <body name="left_wrist_camera_link" pos="0.0 0.0 0.0" quat="1.0 0.0 0.0 0.0">
+                                              <inertial pos="-0.0687164275307753 0.00742418594708705 -0.0656976688947199" quat="1.0 0.0 0.0 0.0" mass="0.0533223543172611" diaginertia="2.57961610647567e-05 1.37594261317448e-05 1.70502507719673e-05" />
+                                              <geom name="left_wrist_camera_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="left_wrist_camera_link.stl" class="collision" />
+                                              <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_wrist_camera_link_visual_0" mesh="left_wrist_camera_link_0" material="omni_chassis_base_link_camera" />
+                                              <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_wrist_camera_link_visual_1" mesh="left_wrist_camera_link_1" material="omni_chassis_base_link_metal_aluminum" />
+                                              <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="left_wrist_camera_link_visual_2" mesh="left_wrist_camera_link_2" material="omni_chassis_base_link_light_silver" />
+                                            </body>
+                                          </body>
+                                        </body>
+                                      </body>
+                                    </body>
+                                  </body>
+                                </body>
+                              </body>
+                            </body>
+                          </body>
+                          <body name="torso_right_arm_mount_link" pos="-0.207966804296295 0.175108335906714 0.000396651818045" quat="-0.0036790530464070881 0.70444620883495235 0.0019846674198166769 -0.70974507009346477">
+                            <inertial pos="0.0 0.0 0.0" quat="1.0 0.0 0.0 0.0" mass="0.0" diaginertia="0.0 0.0 0.0" />
+                            <body name="right_arm_base_link" pos="0.0 0.0 0.0" quat="1.0 0.0 0.0 0.0">
+                              <inertial pos="0.0 0.0 -0.10506" quat="1.0 0.0 0.0 0.0" mass="0.92" diaginertia="0.01075595 0.01077842 0.0007042000000000001" />
+                              <body name="right_arm_link1" pos="0.0 0.0 0.0" quat="0.96592582628907 0.0 0.0 -0.2588190451025146">
+                                <inertial pos="0.0 -0.0009699999999999999 -0.015390000000000001" quat="1.0 0.0 0.0 0.0" mass="1.6" diaginertia="0.00332981 0.00339121 0.0016524" />
+                                <joint name="right_arm_joint1" type="hinge" class="right_arm" range="-3.00432619 3.00432619" axis="0.0 0.0 1.0" />
+                                <geom name="right_arm_link1_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="right_arm_link1.stl" class="collision" />
+                                <geom name="right_arm_link1_visual" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="right_arm_link1.obj" material="leg_link1_metal_black" class="visual" />
+                                <body name="right_arm_link2" pos="0.000016788192419 0.000440230647623 -0.000000609152273" quat="-0.0020269177234788671 -0.0020241149942523077 -0.70661449730352122 0.70759292447248545">
+                                  <inertial pos="0.0 -0.09558 0.010150000000000001" quat="1.0 0.0 0.0 0.0" mass="1.43" diaginertia="0.01937881 0.0015791400000000001 0.018951810000000003" />
+                                  <joint name="right_arm_joint2" type="hinge" class="right_arm" range="-1.608062789 1.608062789" axis="0.0 0.0 1.0" />
+                                  <geom name="right_arm_link2_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="right_arm_link2.stl" class="collision" />
+                                  <geom name="right_arm_link2_visual" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="right_arm_link2.obj" material="right_arm_link2_glacier_white" class="visual" />
+                                  <body name="right_arm_link3" pos="0.000360339376728 -0.350314402780874 0.001018303199000" quat="0.35393231090140764 0.3529049863683375 0.61155920684177401 -0.6133394870896649">
+                                    <inertial pos="0.0 -0.00088 -0.04936" quat="1.0 0.0 0.0 0.0" mass="1.43" diaginertia="0.01187457 0.01178759 0.0013715" />
+                                    <joint name="right_arm_joint3" type="hinge" class="right_arm" range="-2.916972222 2.916972222" axis="0.0 0.0 1.0" />
+                                    <geom name="right_arm_link3_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="right_arm_link3.stl" class="collision" />
+                                    <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_arm_link3_visual_0" mesh="right_arm_link3_0" material="right_arm_link3_diffuse_Black" />
+                                    <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_arm_link3_visual_1" mesh="right_arm_link3_1" material="omni_chassis_base_link_metal_aluminum" />
+                                    <body name="right_arm_link4" pos="0.001336224998871 -0.000349426351644 -0.000000293342210" quat="0.0026854390261156998 0.0026876943891490147 -0.70739841985710428 0.70680481060882683">
+                                      <inertial pos="0.0 -0.05614 0.019170000000000003" quat="1.0 0.0 0.0 0.0" mass="1.1" diaginertia="0.00701388 0.00161854 0.0065011999999999995" />
+                                      <joint name="right_arm_joint4" type="hinge" class="right_arm" range="-1.869862177 2.5679938779914946" axis="0.0 0.0 1.0" />
+                                      <geom name="right_arm_link4_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="right_arm_link4.stl" class="collision" />
+                                      <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_arm_link4_visual_0" mesh="right_arm_link4_0" material="omni_chassis_base_link_metal_aluminum" />
+                                      <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_arm_link4_visual_1" mesh="right_arm_link4_1" material="right_arm_link2_glacier_white" />
+                                      <body name="right_arm_link5" pos="-0.000332616635634 -0.360741220778377 -0.001288269081331" quat="0.0018097887619712425 0.0018162633699257697 -0.70836591955555483 0.70584073973115324">
+                                        <inertial pos="0.00044 0.0016899999999999999 -0.13306" quat="1.0 0.0 0.0 0.0" mass="1.15" diaginertia="0.025809930000000002 0.02530313 0.00115848" />
+                                        <joint name="right_arm_joint5" type="hinge" class="right_arm" range="-2.916972222 2.916972222" axis="0.0 0.0 1.0" />
+                                        <geom name="right_arm_link5_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="right_arm_link5.stl" class="collision" />
+                                        <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_arm_link5_visual_0" mesh="right_arm_link5_0" material="omni_chassis_base_link_light_silver" />
+                                        <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_arm_link5_visual_1" mesh="right_arm_link5_1" material="right_arm_link2_glacier_white" />
+                                        <body name="right_arm_link6" pos="0.001004225409173 -0.000045570194813 0.000000011040460" quat="0.49446342917720792 0.4943436482046713 0.50547326401459824 -0.50559574172696597">
+                                          <inertial pos="-0.00088 0.0072699999999999996 -0.00011999999999999999" quat="1.0 0.0 0.0 0.0" mass="0.47" diaginertia="0.00027557 0.00028977999999999995 0.00029684" />
+                                          <joint name="right_arm_joint6" type="hinge" class="right_arm" range="-0.7353981633974483 0.8226646259971648" axis="0.0 0.0 1.0" />
+                                          <geom name="right_arm_link6_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="right_arm_link6.stl" class="collision" />
+                                          <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_arm_link6_visual_0" mesh="right_arm_link6_0" material="omni_chassis_base_link_light_silver" />
+                                          <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_arm_link6_visual_1" mesh="right_arm_link6_1" material="right_arm_link2_glacier_white" />
+                                          <body name="right_arm_link7" pos="0.000254066706897 0.000000000000000 0.000000000000000" quat="0.7083907003649843 -0.70582052650543337 0 0">
+                                            <inertial pos="-0.05751 0.00684 0.011869999999999999" quat="1.0 0.0 0.0 0.0" mass="0.8" diaginertia="0.00117613 0.00423935 0.00417642" />
+                                            <joint name="right_arm_joint7" type="hinge" class="right_arm" range="-1.538202778 1.538202778" axis="0.0 0.0 1.0" />
+                                            <geom name="right_arm_link7_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="right_arm_link7.stl" class="collision" />
+                                            <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_arm_link7_visual_0" mesh="right_arm_link7_0" material="omni_chassis_base_link_metal_aluminum" />
+                                            <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_arm_link7_visual_1" mesh="right_arm_link7_1" material="omni_chassis_base_link_light_silver" />
+                                            <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_arm_link7_visual_2" mesh="right_arm_link7_2" material="right_arm_link2_glacier_white" />
+                                            <body name="right_arm_end_effector_mount_link" pos="-0.109432042705616 0.000229443221067 0.000374490453187" quat="-0.0024743219847301215 0.010076247334608726 0.99990195485625133 -0.0094035974507029971">
+                                              <inertial pos="0.0 0.0 0.0" quat="1.0 0.0 0.0 0.0" mass="0.0" diaginertia="0.0 0.0 0.0" />
+                                              <!-- Actual installation: +90 degrees about local X when viewed from +X toward -X. -->
+                                              <body name="right_gripper_flange_link" pos="0 0 0" quat="0.7071067811865476 0.7071067811865475 0.0 0.0">
+                                                <inertial pos="0.0030662 -1.4019e-18 3.383e-18" quat="1.0 0.0 0.0 0.0" mass="0.031005" diaginertia="2.2585e-05 1.141e-05 1.141e-05" />
+                                                <geom name="right_gripper_flange_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="right_gripper_flange_link.stl" class="collision" />
+                                                <geom name="right_gripper_flange_link_visual" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="right_gripper_flange_link.obj" material="leg_link1_metal_black" class="visual" />
+                                                <body name="right_gripper_base_link" pos="0.0065 0.0 0.0" quat="1.0 0.0 0.0 0.0">
+                                                  <inertial pos="0.037051 -6.4001e-05 6.4706e-05" quat="1.0 0.0 0.0 0.0" mass="0.061747" diaginertia="2.5813e-05 7.2859e-05 5.7173e-05" />
+                                                  <geom name="right_gripper_base_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="right_gripper_base_link.stl" class="collision" />
+                                                  <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_gripper_base_link_visual_0" mesh="right_gripper_base_link_0" material="head_link1_plastic_black.001" />
+                                                  <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_gripper_base_link_visual_1" mesh="right_gripper_base_link_1" material="leg_link1_metal_black" />
+                                                  <body name="right_gripper_l_knuckle_link" pos="0.0745 0.0 -0.0385" quat="0.5741606635851662 0.5741606635851662 0.41272210068209536 -0.4127221006820953">
+                                                    <inertial pos="0.024101 0.0 0.0" quat="1.0 0.0 0.0 0.0" mass="0.0070682" diaginertia="9.2131e-08 1.559e-06 1.4931e-06" />
+                                                    <joint name="right_gripper_l_knuckle_joint" type="hinge" range="-3.13 3.13" axis="0.0 0.0 1.0" />
+                                                    <geom name="right_gripper_l_knuckle_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="right_gripper_l_knuckle_link.stl" class="collision" />
+                                                    <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_gripper_l_knuckle_link_visual_0" mesh="right_gripper_l_knuckle_link_0" material="omni_chassis_base_link_light_silver" />
+                                                    <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_gripper_l_knuckle_link_visual_1" mesh="right_gripper_l_knuckle_link_1" material="omni_chassis_base_link_metal_aluminum" />
+                                                  </body>
+                                                  <body name="right_gripper_l_inner_knuckle_link" pos="0.079 0.0 -0.026" quat="0.5741606635851662 0.5741606635851662 0.41272210068209536 -0.4127221006820953">
+                                                    <inertial pos="0.023769 0.0 0.0" quat="1.0 0.0 0.0 0.0" mass="0.007802" diaginertia="1.044e-07 1.6385e-06 1.566e-06" />
+                                                    <joint name="right_gripper_l_inner_knuckle_joint" type="hinge" range="-3.13 3.13" axis="0.0 0.0 1.0" />
+                                                    <geom name="right_gripper_l_inner_knuckle_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="right_gripper_l_inner_knuckle_link.stl" class="collision" />
+                                                    <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_gripper_l_inner_knuckle_link_visual_0" mesh="right_gripper_l_inner_knuckle_link_0" material="omni_chassis_base_link_light_silver" />
+                                                    <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_gripper_l_inner_knuckle_link_visual_1" mesh="right_gripper_l_inner_knuckle_link_1" material="omni_chassis_base_link_metal_aluminum" />
+                                                    <body name="right_gripper_l_finger_link" pos="0.045 0.0 0.0" quat="0.811985797423278 0.0 0.0 0.5836771922757332">
+                                                      <inertial pos="0.016809 0.0019094 0.0" quat="1.0 0.0 0.0 0.0" mass="0.015957" diaginertia="5.5426e-07 1.8538e-06 1.5262e-06" />
+                                                      <joint name="right_gripper_l_finger_joint" type="hinge" range="-3.13 3.13" axis="0.0 0.0 1.0" />
+                                                      <geom name="right_gripper_l_finger_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="right_gripper_l_finger_link.stl" class="collision" />
+                                                      <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_gripper_l_finger_link_visual_0" mesh="right_gripper_l_finger_link_0" material="omni_chassis_base_link_metal_aluminum" />
+                                                      <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_gripper_l_finger_link_visual_1" mesh="right_gripper_l_finger_link_1" material="omni_chassis_base_link_light_silver" />
+                                                      <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_gripper_l_finger_link_visual_2" mesh="right_gripper_l_finger_link_2" material="head_link1_plastic_black.001" />
+                                                    </body>
+                                                  </body>
+                                                  <body name="right_gripper_r_knuckle_link" pos="0.0745 0.0 0.0385" quat="0.5741606635851662 0.5741606635851662 -0.41272210068209536 0.4127221006820953">
+                                                    <inertial pos="0.024101 0.0 0.0" quat="1.0 0.0 0.0 0.0" mass="0.0070682" diaginertia="9.2131e-08 1.559e-06 1.4931e-06" />
+                                                    <joint name="right_gripper_r_knuckle_joint" type="hinge" range="0.0 1.703" axis="0.0 0.0 -1.0" />
+                                                    <geom name="right_gripper_r_knuckle_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="right_gripper_r_knuckle_link.stl" class="collision" />
+                                                    <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_gripper_r_knuckle_link_visual_0" mesh="right_gripper_r_knuckle_link_0" material="omni_chassis_base_link_light_silver" />
+                                                    <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_gripper_r_knuckle_link_visual_1" mesh="right_gripper_r_knuckle_link_1" material="omni_chassis_base_link_metal_aluminum" />
+                                                  </body>
+                                                  <body name="right_gripper_r_inner_knuckle_link" pos="0.079 0.0 0.026" quat="0.5741606635851662 0.5741606635851662 -0.41272210068209536 0.4127221006820953">
+                                                    <inertial pos="0.023769 0.0 0.0" quat="1.0 0.0 0.0 0.0" mass="0.007802" diaginertia="1.044e-07 1.6385e-06 1.566e-06" />
+                                                    <joint name="right_gripper_r_inner_knuckle_joint" type="hinge" range="-3.13 3.13" axis="0.0 0.0 1.0" />
+                                                    <geom name="right_gripper_r_inner_knuckle_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="right_gripper_r_inner_knuckle_link.stl" class="collision" />
+                                                    <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_gripper_r_inner_knuckle_link_visual_0" mesh="right_gripper_r_inner_knuckle_link_0" material="omni_chassis_base_link_light_silver" />
+                                                    <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_gripper_r_inner_knuckle_link_visual_1" mesh="right_gripper_r_inner_knuckle_link_1" material="omni_chassis_base_link_metal_aluminum" />
+                                                    <body name="right_gripper_r_finger_link" pos="0.045 0.0 0.0" quat="0.811985797423278 0.0 0.0 -0.5836771922757332">
+                                                      <inertial pos="0.016809 -0.0019094 0.0" quat="1.0 0.0 0.0 0.0" mass="0.015957" diaginertia="5.5426e-07 1.8538e-06 1.5262e-06" />
+                                                      <joint name="right_gripper_r_finger_joint" type="hinge" range="-3.13 3.13" axis="0.0 0.0 1.0" />
+                                                      <geom name="right_gripper_r_finger_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="right_gripper_r_finger_link.stl" class="collision" />
+                                                      <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_gripper_r_finger_link_visual_0" mesh="right_gripper_r_finger_link_0" material="omni_chassis_base_link_light_silver" />
+                                                      <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_gripper_r_finger_link_visual_1" mesh="right_gripper_r_finger_link_1" material="omni_chassis_base_link_metal_aluminum" />
+                                                      <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_gripper_r_finger_link_visual_2" mesh="right_gripper_r_finger_link_2" material="head_link1_plastic_black.001" />
+                                                    </body>
+                                                  </body>
+                                                  <body name="right_gripper_tcp_link" pos="0.13996 0.0 0.0" quat="0.7071067811865476 -0.7071067811865475 0.0 0.0">
+                                                    <inertial pos="0.0030662 -1.4019e-18 3.383e-18" quat="1.0 0.0 0.0 0.0" mass="0.031005" diaginertia="2.2585e-05 1.141e-05 1.141e-05" />
+                                                  </body>
+                                                </body>
+                                              </body>
+                                            </body>
+                                            <body name="right_wrist_camera_link" pos="0.0 0.0 0.0" quat="1.0 0.0 0.0 0.0">
+                                              <inertial pos="-0.0621229724155358 -0.0628379837355285 -0.00140310958315455" quat="1.0 0.0 0.0 0.0" mass="0.0492751941348016" diaginertia="3.66069470547417e-05 3.08593710158624e-05 8.80145863410975e-06" />
+                                              <geom name="right_wrist_camera_link_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="right_wrist_camera_link.stl" class="collision" />
+                                              <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_wrist_camera_link_visual_0" mesh="right_wrist_camera_link_0" material="omni_chassis_base_link_camera" />
+                                              <geom pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" class="visual" name="right_wrist_camera_link_visual_1" mesh="right_wrist_camera_link_1" material="omni_chassis_base_link_metal_aluminum" />
+                                            </body>
+                                          </body>
+                                        </body>
+                                      </body>
+                                    </body>
+                                  </body>
+                                </body>
+                              </body>
+                            </body>
+                          </body>
+                        </body>
+                      </body>
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+      <freejoint name="floating_base" />
+      <site name="base_link_site" pos="0 0 0" quat="1 0 0 0" />
+    </body>
+    <light pos="0 0 2.0" dir="0 0 -1" directional="true" />
+    <geom name="floor" class="floor" type="plane" size="0 0 0.05" pos="0 0 -0.03098000" />
+  </worldbody>
+
+  <asset>
+    <material name="leg_link1_metal_black" specular="1.0" shininess="0.439874329" rgba="0.042929 0.042929 0.042929 1.000000" />
+    <material name="head_link1_plastic_black.001" specular="0.5" shininess="0.25" rgba="0.022599 0.022599 0.022599 1.000000" />
+    <material name="right_arm_link2_glacier_white" specular="1.0" shininess="0.325409454" rgba="0.405797 0.443315 0.447975 1.000000" />
+    <material name="collision_material" rgba="1.0 0.28 0.1 0.9" />
+    <material name="omni_chassis_base_link_camera" specular="1.0" shininess="1.0" rgba="0.000000 0.000000 0.000000 1.000000" />
+    <material name="omni_chassis_base_link_green_light" specular="0.0" shininess="0.0" rgba="0.143116 0.800679 0.000000 1.000000" />
+    <material name="omni_chassis_base_link_light_silver" specular="1.0" shininess="0.714634827" rgba="0.738850 0.738850 0.738850 1.000000" />
+    <material name="omni_chassis_base_link_medium_yellow" specular="0.0" shininess="0.195170273" rgba="0.900247 0.361670 0.000000 1.000000" />
+    <material name="omni_chassis_base_link_metal_aluminum" specular="0.5" shininess="0.260415558" rgba="0.820788 0.820788 0.820788 1.000000" />
+    <material name="omni_chassis_base_link_plastic_gary" specular="0.0" shininess="0.0" rgba="0.436201 0.436201 0.436201 1.000000" />
+    <material name="leg_link2_White_silk_screen" specular="0.0" shininess="0.0" rgba="1.000000 1.000000 1.000000 1.000000" />
+    <material name="leg_link2_diffuse" specular="1.0" shininess="0.0" rgba="0.632465 0.632465 0.632465 1.000000" />
+    <material name="torso_base_link_Emergency_stop_tail" specular="0.0" shininess="0.7039899900000001" rgba="0.985884 0.488598 0.015594 1.000000" />
+    <material name="torso_base_link_emergency_stop_switch" specular="0.5" shininess="0.636716553" rgba="0.800315 0.000000 0.001614 1.000000" />
+    <material name="torso_base_link_white_light" specular="0.0" shininess="0.253436371" rgba="0.800000 0.800000 0.800000 1.000000" />
+    <material name="head_link2_glacier_428c" specular="0.149" shininess="0.03825" rgba="0.229002 0.250402 0.250402 1.000000" />
+    <material name="right_arm_link3_diffuse_Black" specular="1.0" shininess="0.0" rgba="0.059618 0.059618 0.059618 1.000000" />
+    <mesh name="leg_link1.obj" file="meshes/v2_2_1/visual/high/leg_link1.obj" />
+    <mesh name="leg_link3.obj" file="meshes/v2_2_1/visual/high/leg_link3.obj" />
+    <mesh name="leg_link4.obj" file="meshes/v2_2_1/visual/high/leg_link4.obj" />
+    <mesh name="leg_link5.obj" file="meshes/v2_2_1/visual/high/leg_link5.obj" />
+    <mesh name="head_link1.obj" file="meshes/v2_2_1/visual/high/head_link1.obj" />
+    <mesh name="left_arm_link1.obj" file="meshes/v2_2_1/visual/high/left_arm_link1.obj" />
+    <mesh name="left_gripper_flange_link.obj" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/left_gripper_flange_link.obj" />
+    <mesh name="right_arm_link1.obj" file="meshes/v2_2_1/visual/high/right_arm_link1.obj" />
+    <mesh name="right_arm_link2.obj" file="meshes/v2_2_1/visual/high/right_arm_link2.obj" />
+    <mesh name="right_gripper_flange_link.obj" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/right_gripper_flange_link.obj" />
+    <mesh name="omni_chassis_base_link.stl" file="meshes/v2_2_1/collision/convex_hull/omni_chassis_base_link.stl" />
+    <mesh name="leg_link1.stl" file="meshes/v2_2_1/collision/convex_hull/leg_link1.stl" />
+    <mesh name="leg_link2.stl" file="meshes/v2_2_1/collision/convex_hull/leg_link2.stl" />
+    <mesh name="leg_link3.stl" file="meshes/v2_2_1/collision/convex_hull/leg_link3.stl" />
+    <mesh name="leg_link4.stl" file="meshes/v2_2_1/collision/convex_hull/leg_link4.stl" />
+    <mesh name="leg_link5.stl" file="meshes/v2_2_1/collision/convex_hull/leg_link5.stl" />
+    <mesh name="torso_base_link.stl" file="meshes/v2_2_1/collision/convex_hull/torso_base_link.stl" />
+    <mesh name="head_link1.stl" file="meshes/v2_2_1/collision/convex_hull/head_link1.stl" />
+    <mesh name="head_link2.stl" file="meshes/v2_2_1/collision/convex_hull/head_link2.stl" />
+    <mesh name="left_arm_link1.stl" file="meshes/v2_2_1/collision/convex_hull/left_arm_link1.stl" />
+    <mesh name="left_arm_link2.stl" file="meshes/v2_2_1/collision/convex_hull/left_arm_link2.stl" />
+    <mesh name="left_arm_link3.stl" file="meshes/v2_2_1/collision/convex_hull/left_arm_link3.stl" />
+    <mesh name="left_arm_link4.stl" file="meshes/v2_2_1/collision/convex_hull/left_arm_link4.stl" />
+    <mesh name="left_arm_link5.stl" file="meshes/v2_2_1/collision/convex_hull/left_arm_link5.stl" />
+    <mesh name="left_arm_link6.stl" file="meshes/v2_2_1/collision/convex_hull/left_arm_link6.stl" />
+    <mesh name="left_arm_link7.stl" file="meshes/v2_2_1/collision/convex_hull/left_arm_link7.stl" />
+    <mesh name="left_wrist_camera_link.stl" file="meshes/v2_2_1/collision/convex_hull/left_wrist_camera_link.stl" />
+    <mesh name="left_gripper_flange_link.stl" file="tools/galbot_ge101in_description/meshes/v1_0_0/collision/convex_hull/left_gripper_flange_link.stl" />
+    <mesh name="left_gripper_base_link.stl" file="tools/galbot_ge101in_description/meshes/v1_0_0/collision/convex_hull/left_gripper_base_link.stl" />
+    <mesh name="left_gripper_l_knuckle_link.stl" file="tools/galbot_ge101in_description/meshes/v1_0_0/collision/convex_hull/left_gripper_l_knuckle_link.stl" />
+    <mesh name="left_gripper_l_inner_knuckle_link.stl" file="tools/galbot_ge101in_description/meshes/v1_0_0/collision/convex_hull/left_gripper_l_inner_knuckle_link.stl" />
+    <mesh name="left_gripper_l_finger_link.stl" file="tools/galbot_ge101in_description/meshes/v1_0_0/collision/convex_hull/left_gripper_l_finger_link.stl" />
+    <mesh name="left_gripper_r_knuckle_link.stl" file="tools/galbot_ge101in_description/meshes/v1_0_0/collision/convex_hull/left_gripper_r_knuckle_link.stl" />
+    <mesh name="left_gripper_r_inner_knuckle_link.stl" file="tools/galbot_ge101in_description/meshes/v1_0_0/collision/convex_hull/left_gripper_r_inner_knuckle_link.stl" />
+    <mesh name="left_gripper_r_finger_link.stl" file="tools/galbot_ge101in_description/meshes/v1_0_0/collision/convex_hull/left_gripper_r_finger_link.stl" />
+    <mesh name="right_arm_link1.stl" file="meshes/v2_2_1/collision/convex_hull/right_arm_link1.stl" />
+    <mesh name="right_arm_link2.stl" file="meshes/v2_2_1/collision/convex_hull/right_arm_link2.stl" />
+    <mesh name="right_arm_link3.stl" file="meshes/v2_2_1/collision/convex_hull/right_arm_link3.stl" />
+    <mesh name="right_arm_link4.stl" file="meshes/v2_2_1/collision/convex_hull/right_arm_link4.stl" />
+    <mesh name="right_arm_link5.stl" file="meshes/v2_2_1/collision/convex_hull/right_arm_link5.stl" />
+    <mesh name="right_arm_link6.stl" file="meshes/v2_2_1/collision/convex_hull/right_arm_link6.stl" />
+    <mesh name="right_arm_link7.stl" file="meshes/v2_2_1/collision/convex_hull/right_arm_link7.stl" />
+    <mesh name="right_wrist_camera_link.stl" file="meshes/v2_2_1/collision/convex_hull/right_wrist_camera_link.stl" />
+    <mesh name="right_gripper_flange_link.stl" file="tools/galbot_ge101in_description/meshes/v1_0_0/collision/convex_hull/right_gripper_flange_link.stl" />
+    <mesh name="right_gripper_base_link.stl" file="tools/galbot_ge101in_description/meshes/v1_0_0/collision/convex_hull/right_gripper_base_link.stl" />
+    <mesh name="right_gripper_l_knuckle_link.stl" file="tools/galbot_ge101in_description/meshes/v1_0_0/collision/convex_hull/right_gripper_l_knuckle_link.stl" />
+    <mesh name="right_gripper_l_inner_knuckle_link.stl" file="tools/galbot_ge101in_description/meshes/v1_0_0/collision/convex_hull/right_gripper_l_inner_knuckle_link.stl" />
+    <mesh name="right_gripper_l_finger_link.stl" file="tools/galbot_ge101in_description/meshes/v1_0_0/collision/convex_hull/right_gripper_l_finger_link.stl" />
+    <mesh name="right_gripper_r_knuckle_link.stl" file="tools/galbot_ge101in_description/meshes/v1_0_0/collision/convex_hull/right_gripper_r_knuckle_link.stl" />
+    <mesh name="right_gripper_r_inner_knuckle_link.stl" file="tools/galbot_ge101in_description/meshes/v1_0_0/collision/convex_hull/right_gripper_r_inner_knuckle_link.stl" />
+    <mesh name="right_gripper_r_finger_link.stl" file="tools/galbot_ge101in_description/meshes/v1_0_0/collision/convex_hull/right_gripper_r_finger_link.stl" />
+    <mesh name="omni_chassis_base_link_0" file="meshes/v2_2_1/visual/high/omni_chassis_base_link/omni_chassis_base_link_0.obj" />
+    <mesh name="omni_chassis_base_link_1" file="meshes/v2_2_1/visual/high/omni_chassis_base_link/omni_chassis_base_link_1.obj" />
+    <mesh name="omni_chassis_base_link_2" file="meshes/v2_2_1/visual/high/omni_chassis_base_link/omni_chassis_base_link_2.obj" />
+    <mesh name="omni_chassis_base_link_3" file="meshes/v2_2_1/visual/high/omni_chassis_base_link/omni_chassis_base_link_3.obj" />
+    <mesh name="omni_chassis_base_link_4" file="meshes/v2_2_1/visual/high/omni_chassis_base_link/omni_chassis_base_link_4.obj" />
+    <mesh name="omni_chassis_base_link_5" file="meshes/v2_2_1/visual/high/omni_chassis_base_link/omni_chassis_base_link_5.obj" />
+    <mesh name="omni_chassis_base_link_6" file="meshes/v2_2_1/visual/high/omni_chassis_base_link/omni_chassis_base_link_6.obj" />
+    <mesh name="omni_chassis_base_link_7" file="meshes/v2_2_1/visual/high/omni_chassis_base_link/omni_chassis_base_link_7.obj" />
+    <mesh name="leg_link2_0" file="meshes/v2_2_1/visual/high/leg_link2/leg_link2_0.obj" />
+    <mesh name="leg_link2_1" file="meshes/v2_2_1/visual/high/leg_link2/leg_link2_1.obj" />
+    <mesh name="leg_link2_2" file="meshes/v2_2_1/visual/high/leg_link2/leg_link2_2.obj" />
+    <mesh name="leg_link2_3" file="meshes/v2_2_1/visual/high/leg_link2/leg_link2_3.obj" />
+    <mesh name="torso_base_link_0" file="meshes/v2_2_1/visual/high/torso_base_link/torso_base_link_0.obj" />
+    <mesh name="torso_base_link_1" file="meshes/v2_2_1/visual/high/torso_base_link/torso_base_link_1.obj" />
+    <mesh name="torso_base_link_2" file="meshes/v2_2_1/visual/high/torso_base_link/torso_base_link_2.obj" />
+    <mesh name="torso_base_link_3" file="meshes/v2_2_1/visual/high/torso_base_link/torso_base_link_3.obj" />
+    <mesh name="torso_base_link_4" file="meshes/v2_2_1/visual/high/torso_base_link/torso_base_link_4.obj" />
+    <mesh name="torso_base_link_5" file="meshes/v2_2_1/visual/high/torso_base_link/torso_base_link_5.obj" />
+    <mesh name="torso_base_link_6" file="meshes/v2_2_1/visual/high/torso_base_link/torso_base_link_6.obj" />
+    <mesh name="torso_base_link_7" file="meshes/v2_2_1/visual/high/torso_base_link/torso_base_link_7.obj" />
+    <mesh name="torso_base_link_8" file="meshes/v2_2_1/visual/high/torso_base_link/torso_base_link_8.obj" />
+    <mesh name="torso_base_link_9" file="meshes/v2_2_1/visual/high/torso_base_link/torso_base_link_9.obj" />
+    <mesh name="head_link2_0" file="meshes/v2_2_1/visual/high/head_link2/head_link2_0.obj" />
+    <mesh name="head_link2_1" file="meshes/v2_2_1/visual/high/head_link2/head_link2_1.obj" />
+    <mesh name="head_link2_2" file="meshes/v2_2_1/visual/high/head_link2/head_link2_2.obj" />
+    <mesh name="head_link2_3" file="meshes/v2_2_1/visual/high/head_link2/head_link2_3.obj" />
+    <mesh name="head_link2_4" file="meshes/v2_2_1/visual/high/head_link2/head_link2_4.obj" />
+    <mesh name="left_arm_link2_0" file="meshes/v2_2_1/visual/high/left_arm_link2/left_arm_link2_0.obj" />
+    <mesh name="left_arm_link2_1" file="meshes/v2_2_1/visual/high/left_arm_link2/left_arm_link2_1.obj" />
+    <mesh name="left_arm_link3_0" file="meshes/v2_2_1/visual/high/left_arm_link3/left_arm_link3_0.obj" />
+    <mesh name="left_arm_link3_1" file="meshes/v2_2_1/visual/high/left_arm_link3/left_arm_link3_1.obj" />
+    <mesh name="left_arm_link4_0" file="meshes/v2_2_1/visual/high/left_arm_link4/left_arm_link4_0.obj" />
+    <mesh name="left_arm_link4_1" file="meshes/v2_2_1/visual/high/left_arm_link4/left_arm_link4_1.obj" />
+    <mesh name="left_arm_link5_0" file="meshes/v2_2_1/visual/high/left_arm_link5/left_arm_link5_0.obj" />
+    <mesh name="left_arm_link5_1" file="meshes/v2_2_1/visual/high/left_arm_link5/left_arm_link5_1.obj" />
+    <mesh name="left_arm_link6_0" file="meshes/v2_2_1/visual/high/left_arm_link6/left_arm_link6_0.obj" />
+    <mesh name="left_arm_link6_1" file="meshes/v2_2_1/visual/high/left_arm_link6/left_arm_link6_1.obj" />
+    <mesh name="left_arm_link7_0" file="meshes/v2_2_1/visual/high/left_arm_link7/left_arm_link7_0.obj" />
+    <mesh name="left_arm_link7_1" file="meshes/v2_2_1/visual/high/left_arm_link7/left_arm_link7_1.obj" />
+    <mesh name="left_arm_link7_2" file="meshes/v2_2_1/visual/high/left_arm_link7/left_arm_link7_2.obj" />
+    <mesh name="left_wrist_camera_link_0" file="meshes/v2_2_1/visual/high/left_wrist_camera_link/left_wrist_camera_link_0.obj" />
+    <mesh name="left_wrist_camera_link_1" file="meshes/v2_2_1/visual/high/left_wrist_camera_link/left_wrist_camera_link_1.obj" />
+    <mesh name="left_wrist_camera_link_2" file="meshes/v2_2_1/visual/high/left_wrist_camera_link/left_wrist_camera_link_2.obj" />
+    <mesh name="left_gripper_base_link_0" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/left_gripper_base_link/left_gripper_base_link_0.obj" />
+    <mesh name="left_gripper_base_link_1" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/left_gripper_base_link/left_gripper_base_link_1.obj" />
+    <mesh name="left_gripper_l_knuckle_link_0" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/left_gripper_l_knuckle_link/left_gripper_l_knuckle_link_0.obj" />
+    <mesh name="left_gripper_l_knuckle_link_1" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/left_gripper_l_knuckle_link/left_gripper_l_knuckle_link_1.obj" />
+    <mesh name="left_gripper_l_inner_knuckle_link_0" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/left_gripper_l_inner_knuckle_link/left_gripper_l_inner_knuckle_link_0.obj" />
+    <mesh name="left_gripper_l_inner_knuckle_link_1" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/left_gripper_l_inner_knuckle_link/left_gripper_l_inner_knuckle_link_1.obj" />
+    <mesh name="left_gripper_l_finger_link_0" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/left_gripper_l_finger_link/left_gripper_l_finger_link_0.obj" />
+    <mesh name="left_gripper_l_finger_link_1" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/left_gripper_l_finger_link/left_gripper_l_finger_link_1.obj" />
+    <mesh name="left_gripper_l_finger_link_2" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/left_gripper_l_finger_link/left_gripper_l_finger_link_2.obj" />
+    <mesh name="left_gripper_r_knuckle_link_0" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/left_gripper_r_knuckle_link/left_gripper_r_knuckle_link_0.obj" />
+    <mesh name="left_gripper_r_knuckle_link_1" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/left_gripper_r_knuckle_link/left_gripper_r_knuckle_link_1.obj" />
+    <mesh name="left_gripper_r_inner_knuckle_link_0" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/left_gripper_r_inner_knuckle_link/left_gripper_r_inner_knuckle_link_0.obj" />
+    <mesh name="left_gripper_r_inner_knuckle_link_1" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/left_gripper_r_inner_knuckle_link/left_gripper_r_inner_knuckle_link_1.obj" />
+    <mesh name="left_gripper_r_finger_link_0" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/left_gripper_r_finger_link/left_gripper_r_finger_link_0.obj" />
+    <mesh name="left_gripper_r_finger_link_1" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/left_gripper_r_finger_link/left_gripper_r_finger_link_1.obj" />
+    <mesh name="left_gripper_r_finger_link_2" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/left_gripper_r_finger_link/left_gripper_r_finger_link_2.obj" />
+    <mesh name="right_arm_link3_0" file="meshes/v2_2_1/visual/high/right_arm_link3/right_arm_link3_0.obj" />
+    <mesh name="right_arm_link3_1" file="meshes/v2_2_1/visual/high/right_arm_link3/right_arm_link3_1.obj" />
+    <mesh name="right_arm_link4_0" file="meshes/v2_2_1/visual/high/right_arm_link4/right_arm_link4_0.obj" />
+    <mesh name="right_arm_link4_1" file="meshes/v2_2_1/visual/high/right_arm_link4/right_arm_link4_1.obj" />
+    <mesh name="right_arm_link5_0" file="meshes/v2_2_1/visual/high/right_arm_link5/right_arm_link5_0.obj" />
+    <mesh name="right_arm_link5_1" file="meshes/v2_2_1/visual/high/right_arm_link5/right_arm_link5_1.obj" />
+    <mesh name="right_arm_link6_0" file="meshes/v2_2_1/visual/high/right_arm_link6/right_arm_link6_0.obj" />
+    <mesh name="right_arm_link6_1" file="meshes/v2_2_1/visual/high/right_arm_link6/right_arm_link6_1.obj" />
+    <mesh name="right_arm_link7_0" file="meshes/v2_2_1/visual/high/right_arm_link7/right_arm_link7_0.obj" />
+    <mesh name="right_arm_link7_1" file="meshes/v2_2_1/visual/high/right_arm_link7/right_arm_link7_1.obj" />
+    <mesh name="right_arm_link7_2" file="meshes/v2_2_1/visual/high/right_arm_link7/right_arm_link7_2.obj" />
+    <mesh name="right_wrist_camera_link_0" file="meshes/v2_2_1/visual/high/right_wrist_camera_link/right_wrist_camera_link_0.obj" />
+    <mesh name="right_wrist_camera_link_1" file="meshes/v2_2_1/visual/high/right_wrist_camera_link/right_wrist_camera_link_1.obj" />
+    <mesh name="right_gripper_base_link_0" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/right_gripper_base_link/right_gripper_base_link_0.obj" />
+    <mesh name="right_gripper_base_link_1" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/right_gripper_base_link/right_gripper_base_link_1.obj" />
+    <mesh name="right_gripper_l_knuckle_link_0" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/right_gripper_l_knuckle_link/right_gripper_l_knuckle_link_0.obj" />
+    <mesh name="right_gripper_l_knuckle_link_1" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/right_gripper_l_knuckle_link/right_gripper_l_knuckle_link_1.obj" />
+    <mesh name="right_gripper_l_inner_knuckle_link_0" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/right_gripper_l_inner_knuckle_link/right_gripper_l_inner_knuckle_link_0.obj" />
+    <mesh name="right_gripper_l_inner_knuckle_link_1" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/right_gripper_l_inner_knuckle_link/right_gripper_l_inner_knuckle_link_1.obj" />
+    <mesh name="right_gripper_l_finger_link_0" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/right_gripper_l_finger_link/right_gripper_l_finger_link_0.obj" />
+    <mesh name="right_gripper_l_finger_link_1" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/right_gripper_l_finger_link/right_gripper_l_finger_link_1.obj" />
+    <mesh name="right_gripper_l_finger_link_2" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/right_gripper_l_finger_link/right_gripper_l_finger_link_2.obj" />
+    <mesh name="right_gripper_r_knuckle_link_0" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/right_gripper_r_knuckle_link/right_gripper_r_knuckle_link_0.obj" />
+    <mesh name="right_gripper_r_knuckle_link_1" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/right_gripper_r_knuckle_link/right_gripper_r_knuckle_link_1.obj" />
+    <mesh name="right_gripper_r_inner_knuckle_link_0" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/right_gripper_r_inner_knuckle_link/right_gripper_r_inner_knuckle_link_0.obj" />
+    <mesh name="right_gripper_r_inner_knuckle_link_1" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/right_gripper_r_inner_knuckle_link/right_gripper_r_inner_knuckle_link_1.obj" />
+    <mesh name="right_gripper_r_finger_link_0" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/right_gripper_r_finger_link/right_gripper_r_finger_link_0.obj" />
+    <mesh name="right_gripper_r_finger_link_1" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/right_gripper_r_finger_link/right_gripper_r_finger_link_1.obj" />
+    <mesh name="right_gripper_r_finger_link_2" file="tools/galbot_ge101in_description/meshes/v1_0_0/visual/high/right_gripper_r_finger_link/right_gripper_r_finger_link_2.obj" />
+    <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3" markrgb="0.8 0.8 0.8" width="300" height="300" />
+    <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0.2" />
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072" />
+  </asset>
+
+  <actuator>
+    <position name="leg_joint1" joint="leg_joint1" class="leg" ctrlrange="0.0 0.9374" forcerange="-169.0 169.0" />
+    <position name="leg_joint2" joint="leg_joint2" class="leg" ctrlrange="0.0 2.5847" forcerange="-169.0 169.0" />
+    <position name="leg_joint3" joint="leg_joint3" class="leg" ctrlrange="0.0 2.3262" forcerange="-84.0 84.0" />
+    <position name="leg_joint4" joint="leg_joint4" class="leg" ctrlrange="-1.5906 1.5906" forcerange="-30.0 30.0" />
+    <position name="leg_joint5" joint="leg_joint5" class="leg" ctrlrange="-0.1645 0.1645" forcerange="-30.0 30.0" />
+    <position name="head_joint1" joint="head_joint1" class="head" ctrlrange="-1.5208 1.5208" forcerange="-4.0 4.0" />
+    <position name="head_joint2" joint="head_joint2" class="head" ctrlrange="-0.2143461 0.4935988" forcerange="-4.0 4.0" />
+    <position name="right_arm_joint1" joint="right_arm_joint1" class="right_arm" ctrlrange="-3.00432619 3.00432619" forcerange="-60.0 60.0" />
+    <position name="right_arm_joint2" joint="right_arm_joint2" class="right_arm" ctrlrange="-1.608062789 1.608062789" forcerange="-60.0 60.0" />
+    <position name="right_arm_joint3" joint="right_arm_joint3" class="right_arm" ctrlrange="-2.916972222 2.916972222" forcerange="-30.0 30.0" />
+    <position name="right_arm_joint4" joint="right_arm_joint4" class="right_arm" ctrlrange="-1.869862177 2.5679938779914946" forcerange="-30.0 30.0" />
+    <position name="right_arm_joint5" joint="right_arm_joint5" class="right_arm" ctrlrange="-2.916972222 2.916972222" forcerange="-10.0 10.0" />
+    <position name="right_arm_joint6" joint="right_arm_joint6" class="right_arm" ctrlrange="-0.7353981633974483 0.8226646259971648" forcerange="-10.0 10.0" />
+    <position name="right_arm_joint7" joint="right_arm_joint7" class="right_arm" ctrlrange="-1.538202778 1.538202778" forcerange="-10.0 10.0" />
+    <position name="left_arm_joint1" joint="left_arm_joint1" class="left_arm" ctrlrange="-3.00432619 3.00432619" forcerange="-60.0 60.0" />
+    <position name="left_arm_joint2" joint="left_arm_joint2" class="left_arm" ctrlrange="-1.608062789 1.608062789" forcerange="-60.0 60.0" />
+    <position name="left_arm_joint3" joint="left_arm_joint3" class="left_arm" ctrlrange="-2.916972222 2.916972222" forcerange="-30.0 30.0" />
+    <position name="left_arm_joint4" joint="left_arm_joint4" class="left_arm" ctrlrange="-2.5679938779914946 1.869862177" forcerange="-30.0 30.0" />
+    <position name="left_arm_joint5" joint="left_arm_joint5" class="left_arm" ctrlrange="-2.916972222 2.916972222" forcerange="-10.0 10.0" />
+    <position name="left_arm_joint6" joint="left_arm_joint6" class="left_arm" ctrlrange="-0.8226646259971648 0.7353981633974483" forcerange="-10.0 10.0" />
+    <position name="left_arm_joint7" joint="left_arm_joint7" class="left_arm" ctrlrange="-1.538202778 1.538202778" forcerange="-10.0 10.0" />
+    <position name="left_gripper_r_knuckle_joint" joint="left_gripper_r_knuckle_joint" ctrlrange="0.0 1.703" forcerange="-50.0 50.0" />
+    <position name="right_gripper_r_knuckle_joint" joint="right_gripper_r_knuckle_joint" ctrlrange="0.0 1.703" forcerange="-50.0 50.0" />
+  </actuator>
+
+  <equality>
+    <joint joint1="left_gripper_r_knuckle_joint" joint2="left_gripper_l_knuckle_joint" polycoef="0.0 1.0 0 0 0" solimp="0.95 0.99 0.001" solref="0.005 1" />
+    <joint joint1="left_gripper_r_knuckle_joint" joint2="left_gripper_l_inner_knuckle_joint" polycoef="0.0 1.0 0 0 0" solimp="0.95 0.99 0.001" solref="0.005 1" />
+    <joint joint1="left_gripper_r_knuckle_joint" joint2="left_gripper_l_finger_joint" polycoef="0.0 -1.0 0 0 0" solimp="0.95 0.99 0.001" solref="0.005 1" />
+    <joint joint1="left_gripper_r_knuckle_joint" joint2="left_gripper_r_inner_knuckle_joint" polycoef="0.0 -1.0 0 0 0" solimp="0.95 0.99 0.001" solref="0.005 1" />
+    <joint joint1="left_gripper_r_knuckle_joint" joint2="left_gripper_r_finger_joint" polycoef="0.0 1.0 0 0 0" solimp="0.95 0.99 0.001" solref="0.005 1" />
+    <joint joint1="right_gripper_r_knuckle_joint" joint2="right_gripper_l_knuckle_joint" polycoef="0.0 1.0 0 0 0" solimp="0.95 0.99 0.001" solref="0.005 1" />
+    <joint joint1="right_gripper_r_knuckle_joint" joint2="right_gripper_l_inner_knuckle_joint" polycoef="0.0 1.0 0 0 0" solimp="0.95 0.99 0.001" solref="0.005 1" />
+    <joint joint1="right_gripper_r_knuckle_joint" joint2="right_gripper_l_finger_joint" polycoef="0.0 -1.0 0 0 0" solimp="0.95 0.99 0.001" solref="0.005 1" />
+    <joint joint1="right_gripper_r_knuckle_joint" joint2="right_gripper_r_inner_knuckle_joint" polycoef="0.0 -1.0 0 0 0" solimp="0.95 0.99 0.001" solref="0.005 1" />
+    <joint joint1="right_gripper_r_knuckle_joint" joint2="right_gripper_r_finger_joint" polycoef="0.0 1.0 0 0 0" solimp="0.95 0.99 0.001" solref="0.005 1" />
+  </equality>
+
+  <contact>
+    <exclude body1="leg_link1" body2="leg_link2" />
+    <exclude body1="leg_link2" body2="leg_link3" />
+    <exclude body1="leg_link3" body2="leg_link4" />
+    <exclude body1="leg_link4" body2="leg_link5" />
+    <exclude body1="head_link1" body2="head_link2" />
+    <exclude body1="left_arm_link1" body2="left_arm_link2" />
+    <exclude body1="left_arm_link2" body2="left_arm_link3" />
+    <exclude body1="left_arm_link3" body2="left_arm_link4" />
+    <exclude body1="left_arm_link4" body2="left_arm_link5" />
+    <exclude body1="left_arm_link5" body2="left_arm_link6" />
+    <exclude body1="left_arm_link6" body2="left_arm_link7" />
+    <exclude body1="left_arm_link7" body2="left_wrist_camera_link" />
+    <exclude body1="left_gripper_flange_link" body2="left_gripper_base_link" />
+    <exclude body1="left_gripper_base_link" body2="left_gripper_l_knuckle_link" />
+    <exclude body1="left_gripper_base_link" body2="left_gripper_l_inner_knuckle_link" />
+    <exclude body1="left_gripper_l_inner_knuckle_link" body2="left_gripper_l_finger_link" />
+    <exclude body1="left_gripper_base_link" body2="left_gripper_r_knuckle_link" />
+    <exclude body1="left_gripper_base_link" body2="left_gripper_r_inner_knuckle_link" />
+    <exclude body1="left_gripper_r_inner_knuckle_link" body2="left_gripper_r_finger_link" />
+    <exclude body1="right_arm_link1" body2="right_arm_link2" />
+    <exclude body1="right_arm_link2" body2="right_arm_link3" />
+    <exclude body1="right_arm_link3" body2="right_arm_link4" />
+    <exclude body1="right_arm_link4" body2="right_arm_link5" />
+    <exclude body1="right_arm_link5" body2="right_arm_link6" />
+    <exclude body1="right_arm_link6" body2="right_arm_link7" />
+    <exclude body1="right_arm_link7" body2="right_wrist_camera_link" />
+    <exclude body1="right_gripper_flange_link" body2="right_gripper_base_link" />
+    <exclude body1="right_gripper_base_link" body2="right_gripper_l_knuckle_link" />
+    <exclude body1="right_gripper_base_link" body2="right_gripper_l_inner_knuckle_link" />
+    <exclude body1="right_gripper_l_inner_knuckle_link" body2="right_gripper_l_finger_link" />
+    <exclude body1="right_gripper_base_link" body2="right_gripper_r_knuckle_link" />
+    <exclude body1="right_gripper_base_link" body2="right_gripper_r_inner_knuckle_link" />
+    <exclude body1="right_gripper_r_inner_knuckle_link" body2="right_gripper_r_finger_link" />
+  </contact>
+
+  <visual>
+    <rgba haze="0.15 0.25 0.35 1" />
+  </visual>
+</mujoco>
