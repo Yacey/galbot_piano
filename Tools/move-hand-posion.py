@@ -75,15 +75,70 @@ def move_hand(motion, hand_pose, joint_group):
 
 def main():
     robot = GalbotRobot()
-    robot.init({SensorType.LEFT_ARM_CAMERA, SensorType.LEFT_ARM_DEPTH_CAMERA})
+    robot.init()
     motion = GalbotMotion()
     motion.init()
     time.sleep(1)
 
     # 初始位姿（硬编码）
-    ORIGINAL_LEFT = [0.5562077698154346, 0.07420021567193136, 0.8814180536631244, -0.013693723044796892, 0.07832387506267267, 0.005747793156086455, 0.996817343056477]
-    ORIGINAL_RIGHT =  [0.5671736560309317, -0.12500163431131414, 0.8765803142847286, 0.013786234773956027, 0.05649516908943167, 0.059342328871129335, 0.9965423842488912]
+    # 左右手ik计算成功位姿：
+    # 8-31晚21：10
+
+#     [0.5, 0.95, 0.75, 0, 0, 0, 1]
+# [0.5, -0.95, 0.75,0, 0, 0, 1]
+# FIRST_POSITION_LEFT = [
+#     0.4806415066506866, 0.4077152635089186, 0.9535732583692513,
+#     -0.005149318291046016, 0.04899123823789116,
+#     -0.012803810725276237, 0.9987038627781345,
+# ]
+# FIRST_POSITION_RIGHT = [
+#     0.4897794908823929, -0.25784188082984283, 0.9507047540455765,
+#         -0.018596974853149324, 0.04110136617151251,
+#         0.03533006709425718, 0.9983569584994446,
+# ]
+# 每轮实际弹奏时采用的初始位姿；手掌 stop 位移均以此为基准。
+    ORIGINAL_LEFT = [
+    0.5206415066506866, 0.1377152635089186, 0.7555732583692513, 
+    -0.005149318291046016, 0.04899123823789116, -0.012803810725276237, 
+    0.9987038627781345
+    ]
+
+    ORIGINAL_RIGHT = [
+    0.5187794908823929, -0.05784188082984283, 0.7527047540455765, 
+    -0.018596974853149324, 0.04110136617151251, 0.03533006709425718, 
+    0.9983569584994446
+    ]
+
+    # LEFT_HAND_POSE = [0.55, 0.088, 0.730, 0.0, 0.0, 0.0, 1.0]
+    # RIGHT_HAND_POSE = [0.55, -0.088, 0.730, 0.0, 0.0, 0.0, 1.0]
+
+    # LEFT_HAND_PRE_POSE=LEFT_HAND_POSE.copy()
+    # RIGHT_HAND_PRE_POSE=RIGHT_HAND_POSE.copy()
+    # LEFT_HAND_PRE_POSE[2]+=0.3
+    # RIGHT_HAND_PRE_POSE[2]+=0.3
+
+
     try:
+        # for (l,r) in [(LEFT_HAND_PRE_POSE,RIGHT_HAND_PRE_POSE),(LEFT_HAND_POSE,RIGHT_HAND_POSE)]:
+        #     status = motion.set_end_effector_pose(
+        #         target_pose=l,
+        #         end_effector_frame="left_arm",
+        #         params=Parameter(),  # pyright: ignore[reportCallIssue]
+        #     )
+        #     if status != MotionStatus.SUCCESS:
+        #         raise RuntimeError(f"l: {status}")
+        #     status = motion.set_end_effector_pose(
+        #         target_pose=r,
+        #         end_effector_frame="right_arm",
+        #         params=Parameter(),  # pyright: ignore[reportCallIssue]
+        #     )
+        #     if status != MotionStatus.SUCCESS:
+        #         raise RuntimeError(f"r: {status}")
+
+
+
+        ##########################
+
         # 0. 读取当前左右手末端位姿（仅用于调试打印）
         status, current_left = motion.get_end_effector_pose_on_chain(G1JointGroup.left_arm)
         if status != MotionStatus.SUCCESS:
@@ -109,47 +164,47 @@ def main():
         print(f"  左手实际: {verified_left}")
         # print(f"  右手实际: {verified_right}")
 
-        # 2. 只移动右手 -Y 5cm（左手不动）
-        new_right = list(ORIGINAL_RIGHT)
-        new_right[1] -= 0.05  # -Y 5cm
-        print(f"\n只移动右手 -Y 10cm（左手不动）:")
-        print(f"  左手目标（不动）: {ORIGINAL_LEFT}")
-        print(f"  右手目标: {new_right}")
-        move_hand(motion, new_right, G1JointGroup.right_arm)
-        time.sleep(3)  # 等右手移动完成
+        # # 2. 只移动右手 -Y 5cm（左手不动）
+        # new_right = list(ORIGINAL_RIGHT)
+        # new_right[1] -= 0.05  # -Y 5cm
+        # print(f"\n只移动右手 -Y 10cm（左手不动）:")
+        # print(f"  左手目标（不动）: {ORIGINAL_LEFT}")
+        # print(f"  右手目标: {new_right}")
+        # move_hand(motion, new_right, G1JointGroup.right_arm)
+        # time.sleep(3)  # 等右手移动完成
 
-        # 3. 等待 3 秒观察
-        print(f"\n等待 3 秒观察...")
-        time.sleep(3)
+        # # 3. 等待 3 秒观察
+        # print(f"\n等待 3 秒观察...")
+        # time.sleep(3)
 
-        # 4. 只移动左手 +Y 16cm
-        new_left = list(ORIGINAL_LEFT)
-        new_left[1] += 0.16  # +Y 16cm，手食指对应低8度音do   0.09m 食指对应  
-        print(f"\n移动左手 +Y 5cm :")
-        move_hand(motion, new_left, G1JointGroup.left_arm)
-        time.sleep(3)  # 等右手移动完成
+        # # 4. 只移动左手 +Y 16cm
+        # new_left = list(ORIGINAL_LEFT)
+        # new_left[1] += 0.16  # +Y 16cm，手食指对应低8度音do   0.09m 食指对应  
+        # print(f"\n移动左手 +Y 5cm :")
+        # move_hand(motion, new_left, G1JointGroup.left_arm)
+        # time.sleep(3)  # 等右手移动完成
 
-        # 4.5 读取移动后的左手位姿(便于核对定位精度)
-        status, left_after = motion.get_end_effector_pose_on_chain(G1JointGroup.left_arm)
-        if status != MotionStatus.SUCCESS:
-            print(f"  [警告] 读取移动后左手位姿失败: {status}")
-        else:
-            print(f"\n移动后左手实际位姿:")
-            print(f"  目标: {new_left}")
-            print(f"  实际: {left_after}")
-            # 与目标位姿的位置偏差(米)
-            dx = left_after[0] - new_left[0]
-            dy = left_after[1] - new_left[1]
-            dz = left_after[2] - new_left[2]
-            print(f"  位置偏差 (m): dx={dx:+.4f}, dy={dy:+.4f}, dz={dz:+.4f}")
+        # # 4.5 读取移动后的左手位姿(便于核对定位精度)
+        # status, left_after = motion.get_end_effector_pose_on_chain(G1JointGroup.left_arm)
+        # if status != MotionStatus.SUCCESS:
+        #     print(f"  [警告] 读取移动后左手位姿失败: {status}")
+        # else:
+        #     print(f"\n移动后左手实际位姿:")
+        #     print(f"  目标: {new_left}")
+        #     print(f"  实际: {left_after}")
+        #     # 与目标位姿的位置偏差(米)
+        #     dx = left_after[0] - new_left[0]
+        #     dy = left_after[1] - new_left[1]
+        #     dz = left_after[2] - new_left[2]
+        #     print(f"  位置偏差 (m): dx={dx:+.4f}, dy={dy:+.4f}, dz={dz:+.4f}")
 
 
-        # 5. 恢复：右手回到原始位姿（左手不动）
-        print(f"\n恢复：右手回到原始位姿:")
-        move_hand(motion, list(ORIGINAL_LEFT), G1JointGroup.left_arm)
-        time.sleep(3)  # 等右手恢复完成
-        move_hand(motion, list(ORIGINAL_RIGHT), G1JointGroup.right_arm)
-        time.sleep(3)  # 等右手恢复完成
+        # # 5. 恢复：右手回到原始位姿（左手不动）
+        # print(f"\n恢复：右手回到原始位姿:")
+        # move_hand(motion, list(ORIGINAL_LEFT), G1JointGroup.left_arm)
+        # time.sleep(3)  # 等右手恢复完成
+        # move_hand(motion, list(ORIGINAL_RIGHT), G1JointGroup.right_arm)
+        # time.sleep(3)  # 等右手恢复完成
 
         # 6. 程序退出
         print(f"\n程序退出")
