@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QZ Piano 控制器</title>
+<style>
+:root{
+  --bg:#0d0d10; --bg2:#15151b; --bg3:#1d1d28; --bg4:#262633;
+  --border:#2c2c3a; --border2:#3a3a4a;
+  --text:#e8e8ee; --text2:#a8a8b8; --text3:#7a7a8e;
+  --accent:#9a47ff; --accent2:#7a32cc;
+  --success:#34c759; --warning:#ff9f43; --danger:#ff4757;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"DejaVu Sans Mono",monospace;
+  --sans:"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.5}
+button{font-family:inherit;cursor:pointer;border:none;outline:none;background:none;color:inherit}
+button:disabled{cursor:not-allowed;opacity:.45}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+
+.topbar{height:54px;background:linear-gradient(180deg,#15151b,#0d0d10);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:14px;position:sticky;top:0;z-index:10}
+.topbar h1{margin:0;font-size:15px;font-weight:600;letter-spacing:.5px}
+.topbar h1 .em{font-size:18px;margin-right:6px}
+.topbar h1 .accent{color:var(--accent)}
+.topbar .spacer{flex:1}
+.topbar .refresh{font-family:var(--mono);font-size:14px;display:flex;align-items:center;gap:5px;color:var(--text3)}
+.topbar .refresh.ok{color:var(--success)}
+.topbar .refresh.err{color:var(--danger)}
+.topbar .clock{font-family:var(--mono);font-size:12px;color:var(--text2);min-width:80px;text-align:right}
+
+.layout{display:grid;grid-template-columns:340px 1fr;gap:14px;padding:14px;align-items:start;max-width:1500px;margin:0 auto}
+@media (max-width:900px){.layout{grid-template-columns:1fr}}
+
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:12px}
+.card h2{margin:0 0 12px 0;font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.card h2 .dot{width:8px;height:8px;border-radius:50%;background:var(--text3);transition:background .2s}
+.card h2 .dot.ok{background:var(--success);box-shadow:0 0 8px rgba(52,199,89,.5)}
+.card h2 .dot.warn{background:var(--warning);box-shadow:0 0 8px rgba(255,159,67,.4)}
+.card h2 .dot.bad{background:var(--danger);box-shadow:0 0 8px rgba(255,71,87,.4)}
+
+.row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-top:1px dashed var(--border);font-size:13px;gap:10px}
+.row:first-of-type{border-top:none}
+.row .key{color:var(--text2);flex-shrink:0}
+.row .val{font-family:var(--mono);font-size:11.5px;text-align:right;word-break:break-all}
+.val.ok{color:var(--success)}
+.val.bad{color:var(--danger)}
+.val.warn{color:var(--warning)}
+.val.muted{color:var(--text3)}
+
+.script-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.script{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px;transition:border-color .15s,transform .1s;cursor:pointer}
+.script:hover{border-color:var(--border2)}
+.script.selected{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset,0 4px 20px rgba(154,71,255,.15)}
+.script .head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.script .name{font-size:14px;font-weight:600;line-height:1.3}
+.script .desc{color:var(--text2);font-size:12px;line-height:1.55;flex:1}
+.script .meta{font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:-2px}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:500;letter-spacing:.3px;white-space:nowrap;flex-shrink:0}
+.badge.idle{background:#2a2a36;color:var(--text2)}
+.badge.run{background:rgba(52,199,89,.18);color:#7be897}
+.badge.done{background:rgba(131,167,255,.18);color:#83a7ff}
+.badge.err{background:rgba(255,71,87,.18);color:#ff9bb1}
+.badge.ext{background:rgba(255,159,67,.18);color:#ffc785}
+.badge .blink{display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.actions{display:flex;gap:6px;margin-top:auto;align-items:center;flex-wrap:wrap}
+.pcount{display:inline-flex;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:2px 4px;font-family:var(--mono);font-size:12px}
+.pcount .pcount-label{color:var(--text3);font-size:10px;padding:0 4px}
+.pcount button{cursor:pointer;color:var(--text);background:transparent;border:none;font-size:14px;line-height:1;width:22px;height:22px;border-radius:4px;padding:0}
+.pcount button:hover{background:var(--bg3);color:var(--accent)}
+.pcount input{width:42px;text-align:center;background:transparent;color:var(--text);border:none;font-family:inherit;font-size:13px;outline:none;padding:0}
+.pcount input::-webkit-outer-spin-button,.pcount input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.btn{flex:1;padding:8px 12px;border-radius:7px;font-size:13px;font-weight:500;transition:background .12s,transform .08s}
+.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.run{background:linear-gradient(180deg,#a455ff,#7a32cc);color:#fff;box-shadow:0 2px 8px rgba(154,71,255,.25)}
+.btn.run:hover:not(:disabled){background:linear-gradient(180deg,#b566ff,#8a3ee0)}
+.btn.stop{background:rgba(255,71,87,.15);color:#ff9bb1;border:1px solid rgba(255,71,87,.3)}
+.btn.stop:hover:not(:disabled){background:rgba(255,71,87,.25)}
+.btn.danger{background:var(--danger);color:#fff}
+.btn.danger:hover:not(:disabled){background:#ff5e6e}
+/* 复位按钮: 琥珀色, 与紫色运行/红色停止区分 */
+.btn.reset{background:linear-gradient(180deg,#ffb347,#cc7a00);color:#1d1407;box-shadow:0 2px 8px rgba(255,179,71,.25)}
+.btn.reset:hover:not(:disabled){background:linear-gradient(180deg,#ffc266,#e08800)}
+/* 张开手指按钮: 青色 */
+.btn.open{background:linear-gradient(180deg,#3ec5d3,#1a8a96);color:#fff;box-shadow:0 2px 8px rgba(62,197,211,.25)}
+.btn.open:hover:not(:disabled){background:linear-gradient(180deg,#4fd6e4,#2a9ba8)}
+/* LAN 访问地址列表 */
+.access-list{display:flex;flex-direction:column;gap:6px;margin-top:2px}
+.access-row{display:flex;align-items:center;gap:8px;padding:5px 8px;background:var(--bg);border:1px solid var(--border);border-radius:6px}
+.access-row .iface{font-family:var(--mono);font-size:11px;color:var(--text3);min-width:60px;padding:2px 6px;background:var(--bg3);border-radius:3px;text-align:center}
+.access-row .url{flex:1;font-family:var(--mono);font-size:12px;color:var(--text);word-break:break-all}
+.access-row .url a{color:var(--accent);text-decoration:none}
+.access-row .url a:hover{text-decoration:underline}
+.access-row .copy{cursor:pointer;font-size:11px;color:var(--text3);padding:2px 6px;border-radius:3px;border:1px solid var(--border);background:transparent}
+.access-row .copy:hover{color:var(--accent);border-color:var(--accent)}
+.access-row .copy.ok{color:var(--success);border-color:var(--success)}
+.card.script-card{cursor:pointer}
+/* 服务器连接面板 */
+.conn-input-row{display:flex;gap:6px;align-items:center;margin-top:2px}
+.conn-input-row input{flex:1;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-family:var(--mono);font-size:12px;outline:none}
+.conn-input-row input:focus{border-color:var(--accent)}
+.conn-input-row .btn{flex:0 0 auto;padding:7px 14px;font-size:12px}
+.conn-status{font-family:var(--mono);font-size:11.5px;margin-top:6px;display:flex;align-items:center;gap:6px}
+.conn-status .dot-sm{width:7px;height:7px;border-radius:50%;display:inline-block}
+.conn-status .dot-sm.ok{background:var(--success);box-shadow:0 0 5px var(--success)}
+.conn-status .dot-sm.bad{background:var(--danger)}
+.conn-status.ok{color:var(--success)}
+.conn-status.bad{color:var(--danger)}
+.conn-status.muted{color:var(--text3)}
+.detected-list{display:flex;flex-direction:column;gap:4px;margin-top:4px}
+.detected-row{display:flex;align-items:center;gap:6px;padding:4px 6px;background:var(--bg);border:1px solid var(--border);border-radius:5px;font-family:var(--mono);font-size:11px}
+.detected-row .url{flex:1;color:var(--text);word-break:break-all;display:flex;align-items:center;gap:6px}
+.detected-row .url .tag{color:var(--text3);font-size:10px;background:var(--bg3);padding:1px 5px;border-radius:3px}
+.detected-row .use{cursor:pointer;font-size:10px;color:var(--text3);padding:2px 6px;border-radius:3px;border:1px solid var(--border);background:transparent}
+.detected-row .use:hover{color:var(--accent);border-color:var(--accent)}
+.detected-row.active{border-color:var(--accent);background:rgba(154,71,255,.08)}
+.detected-row.active .use{display:none}
+
+.log-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:14px}
+.log-head{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg3);gap:10px;flex-wrap:wrap}
+.log-head .tabs{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.tab{padding:4px 10px;border-radius:6px;font-size:12px;background:var(--bg);color:var(--text2);border:1px solid var(--border);cursor:pointer;transition:all .12s}
+.tab:hover{border-color:var(--accent2)}
+.tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.log-head .title{font-family:var(--mono);font-size:12px;color:var(--text3)}
+.log-body{background:#08080c;color:#d0d3dc;font-family:var(--mono);font-size:12px;line-height:1.6;height:340px;overflow:auto;padding:10px 14px;white-space:pre-wrap;word-break:break-all}
+.log-body .empty{color:var(--text3);font-style:italic}
+.log-body .truncated{color:var(--warning);font-style:italic;margin-bottom:6px;display:block}
+
+.fab{position:fixed;right:24px;bottom:24px;display:flex;gap:8px;z-index:9}
+.fab .btn{padding:10px 16px;border-radius:999px;font-size:13px;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+.footer{padding:12px 16px 32px;color:var(--text3);font-size:11px;text-align:center;font-family:var(--mono)}
+.footer a{color:var(--accent2);text-decoration:none}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1><span class="em">🎹</span>QZ Piano <span class="accent">控制器</span></h1>
+  <div class="spacer"></div>
+  <div class="refresh" id="refresh"><span>●</span><span id="refresh-text">连接中</span></div>
+  <div class="clock" id="clock">--:--:--</div>
+</div>
+
+<div class="layout">
+  <!-- 左列: 状态 -->
+  <div>
+    <div class="card">
+      <h2><span class="dot" id="dot-conn"></span>服务器连接</h2>
+      <div class="row" style="flex-direction:column;align-items:stretch;gap:4px">
+        <span class="key">后端地址 (IP:端口)</span>
+        <div class="conn-input-row">
+          <input type="text" id="server-url" placeholder="192.168.1.88:8088" spellcheck="false" />
+          <button class="btn run" id="apply-url">应用</button>
+        </div>
+        <div class="conn-status muted" id="conn-status"><span class="dot-sm"></span><span id="conn-text">未连接</span></div>
+      </div>
+      <div class="row" style="flex-direction:column;align-items:stretch;gap:4px;border-top:1px dashed var(--border);margin-top:8px;padding-top:8px">
+        <span class="key" style="font-size:11.5px">自动检测到的接口 (点击切换):</span>
+        <div class="detected-list" id="detected-list"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot" id="dot-robot"></span>机器人连接</h2>
+      <div class="row"><span class="key">总体</span><span class="val" id="v-overall">检测中...</span></div>
+      <div class="row"><span class="key">控制网段</span><span class="val muted" id="v-host">—</span></div>
+      <div class="row"><span class="key">motion_plan</span><span class="val" id="v-motion">—</span></div>
+      <div class="row"><span class="key">galbot_daemon</span><span class="val" id="v-daemon">—</span></div>
+      <div class="row"><span class="key">hpu_comm</span><span class="val" id="v-hpu">—</span></div>
+      <div class="row"><span class="key">TCP :50050</span><span class="val" id="v-tcp50">—</span></div>
+      <div class="row"><span class="key">TCP :50051</span><span class="val" id="v-tcp51">—</span></div>
+      <div class="row"><span class="key">检测时间</span><span class="val muted" id="v-checked">—</span></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot" id="dot-runs"></span>本控制器启动</h2>
+      <div id="runs-body"><div class="row"><span class="key muted">暂无</span><span></span></div></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot" id="dot-ext"></span>外部进程 (非本控制器)</h2>
+      <div id="ext-body"><div class="row"><span class="key muted">无</span><span></span></div></div>
+    </div>
+
+    <div class="card">
+      <h2>服务器信息</h2>
+      <div class="row"><span class="key">PID</span><span class="val muted" id="v-pid">—</span></div>
+      <div class="row"><span class="key">脚本目录</span><span class="val muted" id="v-pdir">—</span></div>
+      <div class="row"><span class="key">日志目录</span><span class="val muted" id="v-ldir">—</span></div>
+      <div class="row" style="flex-direction:column;align-items:stretch;gap:6px">
+          <span class="key" style="margin-bottom:2px">LAN 访问地址</span>
+          <div class="access-list" id="access-list"></div>
+        </div>
+    </div>
+  </div>
+
+  <!-- 右列: 控制 + 日志 -->
+  <div>
+    <div class="card">
+      <h2>歌单 · 演奏相关</h2>
+      <div class="script-grid" id="scripts-songs"></div>
+    </div>
+
+    <div class="card">
+      <h2>工具 · 操作机器人</h2>
+      <div class="script-grid tool-grid" id="scripts-tools"></div>
+    </div>
+
+    <div class="log-card">
+      <div class="log-head">
+        <div class="tabs" id="log-tabs"></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="status-tag" id="log-status">未选中</span>
+          <div class="title" id="log-title">—</div>
+        </div>
+      </div>
+      <div class="log-body" id="log-body">
+        <div class="log-empty" id="log-empty">
+          <div class="arrow">↑</div>
+          <div>点击上面的脚本卡片查看日志</div>
+          <div style="font-size:11px;opacity:.7">支持自动 tail, 200KB 滚动</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer" id="footer">QZ Piano Controller · 端口 8088 · 仅依赖 Python 3.8+ 标准库</div>
+  </div>
+</div>
+
+<div class="fab">
+  <button class="btn danger" id="stop-all">⏹ 全部停止</button>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let SELECTED = null;       // 当前选中的脚本
+let LOG_SINCE = 0;
+let LAST_STATUS = null;
+
+function fmtBytes(n) {
+  if (n < 1024) return n + ' B';
+  if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+  return (n / 1024 / 1024).toFixed(1) + ' MB';
+}
+
+function badge(state) {
+  const txt = { idle: '空闲', run: '运行中', done: '已结束', err: '异常', ext: '外部' }[state] || state;
+  const dot = (state === 'run') ? '<span class="blink"></span>' : '';
+  return '<span class="badge ' + state + '">' + dot + txt + '</span>';
+}
+
+async function fetchStatus() {
+  try {
+    const r = await fetch(BASE_URL + '/api/status', { cache: 'no-store' });
+    if (!r.ok) throw new Error('http ' + r.status);
+    const d = await r.json();
+    LAST_STATUS = d;
+    const ref = $('refresh');
+    ref.className = 'refresh ok';
+    $('refresh-text').textContent = '在线';
+    render(d);
+  } catch (e) {
+    const ref = $('refresh');
+    ref.className = 'refresh err';
+    $('refresh-text').textContent = '断开 (' + e.message + ')';
+  }
+}
+
+function renderScripts(scripts, runs, external) {
+  const extNames = new Set(external.filter((e) => e.script).map((e) => e.script));
+  const runMap = {};
+  runs.forEach((r) => { runMap[r.name] = r; });
+  const cSongs = $('scripts-songs');
+  const cTools = $('scripts-tools');
+  cSongs.innerHTML = '';
+  cTools.innerHTML = '';
+  for (const s of scripts) {
+    const r = runMap[s.name];
+    const ext = extNames.has(s.name);
+    let state = 'idle';
+    let info = '';
+    if (r) {
+      state = r.running ? 'run' : (r.returncode === 0 ? 'done' : 'err');
+      info = r.running ? ('PID ' + r.pid) : ('rc=' + r.returncode);
+    } else if (ext) {
+      state = 'ext';
+      const e = external.find((x) => x.script === s.name);
+      info = '外部 PID ' + (e ? e.pid : '?');
+    }
+    const card = document.createElement('div');
+    card.className = 'script' + (SELECTED === s.name ? ' selected' : '');
+    card.dataset.name = s.name;
+    const runDisabled = (state === 'run' || state === 'ext') ? 'disabled' : '';
+    const stopDisabled = (state === 'run') ? '' : 'disabled';
+    let runBtnClass = 'run', runBtnLabel = '▶ 运行';
+    if (s.action === 'reset') {
+      runBtnClass = 'reset'; runBtnLabel = '↻ 复位';
+    } else if (s.action === 'open') {
+      runBtnClass = 'open'; runBtnLabel = '✋ 张开';
+    }
+    // 重复次数计数器 (有 play_count_arg 的脚本才显示)
+    const hasCount = !!s.play_count_arg;
+    const pcMin = s.play_count_min || 1;
+    const pcMax = s.play_count_max || 99;
+    const curCount = hasCount ? getPlayCount(s.name, s.default_play_count || 1) : 0;
+    let counterHtml = '';
+    if (hasCount) {
+      counterHtml =
+        '<span class="pcount" data-role="counter">' +
+          '<button data-cmd="dec" type="button" title="减少次数">−</button>' +
+          '<input type="number" min="' + pcMin + '" max="' + pcMax + '" value="' + curCount + '" />' +
+          '<button data-cmd="inc" type="button" title="增加次数">+</button>' +
+          '<span class="pcount-label">次</span>' +
+        '</span>';
+      runBtnLabel += ' ×' + curCount;
+    }
+    card.innerHTML =
+      '<div class="head"><div class="name">' + s.label + '</div>' + badge(state) + '</div>' +
+      '<div class="desc">' + s.desc + '</div>' +
+      '<div class="meta">' + info + (info ? ' · ' : '') + s.name + '</div>' +
+      '<div class="actions">' +
+        counterHtml +
+        '<button class="btn ' + runBtnClass + '" data-act="run" ' + runDisabled + '>' + runBtnLabel + '</button>' +
+        '<button class="btn stop" data-act="stop" ' + stopDisabled + '>■ 停止</button>' +
+      '</div>';
+    card.addEventListener('click', (ev) => {
+      if (ev.target.dataset && ev.target.dataset.act) return;
+      if (ev.target.dataset && ev.target.dataset.cmd) return;
+      selectScript(s.name);
+    });
+    card.querySelector('[data-act=run]').addEventListener('click', (ev) => { ev.stopPropagation(); runScript(s.name); });
+    card.querySelector('[data-act=stop]').addEventListener('click', (ev) => { ev.stopPropagation(); stopScript(s.name); });
+    if (hasCount) {
+      const counter = card.querySelector('[data-role=counter]');
+      const input = counter.querySelector('input');
+      counter.querySelector('[data-cmd=dec]').addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const v = Math.max(pcMin, (parseInt(input.value, 10) || pcMin) - 1);
+        input.value = v; setPlayCount(s.name, v);
+        card.querySelector('[data-act=run]').firstChild.textContent = (s.action === 'reset' ? '↻ 复位 ×' : (s.action === 'open' ? '✋ 张开 ×' : '▶ 运行 ×')) + v;
+      });
+      counter.querySelector('[data-cmd=inc]').addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const v = Math.min(pcMax, (parseInt(input.value, 10) || pcMin) + 1);
+        input.value = v; setPlayCount(s.name, v);
+        card.querySelector('[data-act=run]').firstChild.textContent = (s.action === 'reset' ? '↻ 复位 ×' : (s.action === 'open' ? '✋ 张开 ×' : '▶ 运行 ×')) + v;
+      });
+      input.addEventListener('change', (ev) => {
+        ev.stopPropagation();
+        let v = parseInt(input.value, 10);
+        if (isNaN(v)) v = s.default_play_count || 1;
+        v = Math.max(pcMin, Math.min(pcMax, v));
+        input.value = v; setPlayCount(s.name, v);
+        card.querySelector('[data-act=run]').firstChild.textContent = (s.action === 'reset' ? '↻ 复位 ×' : (s.action === 'open' ? '✋ 张开 ×' : '▶ 运行 ×')) + v;
+      });
+      input.addEventListener('click', (ev) => ev.stopPropagation());
+    }
+    if (s.section === 'tools') cTools.appendChild(card);
+  else cSongs.appendChild(card);
+  }
+}
+
+function render(d) {
+  // robot status
+  const r = d.robot;
+  $('dot-robot').className = 'dot ' + (r.overall_ok ? 'ok' : 'bad');
+  $('v-overall').textContent = r.overall_ok ? '✅ 已连接' : '❌ 异常';
+  $('v-overall').className = 'val ' + (r.overall_ok ? 'ok' : 'bad');
+  $('v-host').textContent = r.control_host;
+  const motion = r.sources.service_motion_plan || {};
+  $('v-motion').textContent = motion.running ? ('运行 (PID ' + ((motion.pids || []).join(',')) + ')') : (motion.error || '未运行');
+  $('v-motion').className = 'val ' + (motion.running ? 'ok' : 'bad');
+  const daemon = r.sources['galbot_daemon.service'] || {};
+  $('v-daemon').textContent = daemon.active ? 'active' : (daemon.state || daemon.error || 'inactive');
+  $('v-daemon').className = 'val ' + (daemon.active ? 'ok' : 'bad');
+  const hpu = r.sources['galbot_svc_hpu_comm.service'] || {};
+  $('v-hpu').textContent = hpu.active ? 'active' : (hpu.state || hpu.error || 'inactive');
+  $('v-hpu').className = 'val ' + (hpu.active ? 'ok' : 'bad');
+  const tcp = r.sources.tcp_control || {};
+  const t50 = tcp['50050'] || {};
+  $('v-tcp50').textContent = t50.ok ? ('可达 (' + t50.latency_ms + ' ms)') : (t50.error || '不可达');
+  $('v-tcp50').className = 'val ' + (t50.ok ? 'ok' : 'bad');
+  const t51 = tcp['50051'] || {};
+  $('v-tcp51').textContent = t51.ok ? ('可达 (' + t51.latency_ms + ' ms)') : (t51.error || '不可达');
+  $('v-tcp51').className = 'val ' + (t51.ok ? 'ok' : 'bad');
+  $('v-checked').textContent = r.checked_at;
+
+  // runs
+  const runsBody = $('runs-body');
+  if (d.runs.length === 0) {
+    runsBody.innerHTML = '<div class="row"><span class="key muted">暂无</span><span></span></div>';
+  } else {
+    runsBody.innerHTML = d.runs.map((rn) =>
+      '<div class="row"><span class="key">' + rn.name + '</span>' +
+      '<span class="val ' + (rn.running ? 'ok' : 'muted') + '">' +
+      (rn.running ? ('PID ' + rn.pid + ' · ' + rn.started_at) : ('rc=' + rn.returncode + ' · ' + rn.started_at)) +
+      '</span></div>'
+    ).join('');
+  }
+  const anyRun = d.runs.some((rn) => rn.running);
+  $('dot-runs').className = 'dot ' + (anyRun ? 'ok' : '');
+
+  // external
+  const extBody = $('ext-body');
+  if (d.external.length === 0) {
+    extBody.innerHTML = '<div class="row"><span class="key muted">无</span><span></span></div>';
+    $('dot-ext').className = 'dot';
+  } else {
+    extBody.innerHTML = d.external.map((e) =>
+      '<div class="row"><span class="key">' + (e.script || (e.cmd.slice(0, 32) + '…')) + '</span>' +
+      '<span class="val warn">PID ' + e.pid + '</span></div>'
+    ).join('');
+    $('dot-ext').className = 'dot warn';
+  }
+
+  // server info
+  $('v-pid').textContent = d.server.pid;
+  $('v-pdir').textContent = d.server.piano_dir;
+  $('v-ldir').textContent = d.server.log_dir;
+  // 渲染所有访问地址 (按接口)
+  const accessList = $('access-list');
+  accessList.innerHTML = '';
+  const urls = d.server.access_urls || [];
+  if (!urls.length) {
+    const row = document.createElement('div');
+    row.className = 'access-row';
+    row.innerHTML = '<span class="iface">无</span><span class="url">未检测到非回环地址</span>';
+    accessList.appendChild(row);
+  } else {
+    for (const entry of urls) {
+      // entry is {url, iface} after _to_jsonable conversion of list of tuples
+      const url = (typeof entry === 'string') ? entry : entry.url;
+      const iface = (typeof entry === 'object' && entry) ? entry.iface : 'ip';
+      const row = document.createElement('div');
+      row.className = 'access-row';
+      const a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = url;
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'copy';
+      copyBtn.textContent = '复制';
+      copyBtn.title = '复制到剪贴板';
+      copyBtn.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        try {
+          navigator.clipboard.writeText(url).then(
+            () => { copyBtn.textContent = '已复制'; copyBtn.classList.add('ok'); setTimeout(() => { copyBtn.textContent = '复制'; copyBtn.classList.remove('ok'); }, 1500); },
+            () => { fallbackCopy(url, copyBtn); }
+          );
+        } catch (e) { fallbackCopy(url, copyBtn); }
+      });
+      const ifaceSpan = document.createElement('span');
+      ifaceSpan.className = 'iface';
+      ifaceSpan.textContent = iface;
+      const urlSpan = document.createElement('span');
+      urlSpan.className = 'url';
+      urlSpan.appendChild(a);
+      row.appendChild(ifaceSpan);
+      row.appendChild(urlSpan);
+      row.appendChild(copyBtn);
+      accessList.appendChild(row);
+    }
+  }
+
+  function fallbackCopy(text, btn) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      btn.textContent = '已复制'; btn.classList.add('ok');
+      setTimeout(() => { btn.textContent = '复制'; btn.classList.remove('ok'); }, 1500);
+    } catch (e) {
+      btn.textContent = '失败';
+    }
+  }
+
+  // scripts
+  renderScripts(d.scripts, d.runs, d.external);
+
+  // log tabs
+  renderTabs(d.scripts, d.runs);
+}
+
+function renderTabs(scripts, runs) {
+  const tabs = $('log-tabs');
+  tabs.innerHTML = '';
+  for (const s of scripts) {
+    const b = document.createElement('div');
+    b.className = 'tab' + (SELECTED === s.name ? ' active' : '');
+    b.textContent = s.label;
+    b.addEventListener('click', () => selectScript(s.name));
+    tabs.appendChild(b);
+  }
+}
+
+function selectScript(name) {
+  SELECTED = name;
+  LOG_SINCE = 0;
+  $('log-body').innerHTML = '<div class="log-empty"><div class="arrow">⏳</div><div>加载中...</div></div>';
+  $('log-title').textContent = name + ' · 加载中';
+  const st = $('log-status');
+  st.className = 'status-tag';
+  st.textContent = '加载中';
+  fetchStatus();  // 刷新卡片高亮
+}
+
+async function fetchLogs() {
+  if (!SELECTED) return;
+  try {
+    const r = await fetch(BASE_URL + '/api/logs/' + encodeURIComponent(SELECTED) + '?since=' + LOG_SINCE + '&limit=2000', { cache: 'no-store' });
+    if (!r.ok) return;
+    const d = await r.json();
+    const body = $('log-body');
+    if (LOG_SINCE === 0) {
+      body.innerHTML = '';
+      if (d.truncated) {
+        const w = document.createElement('span');
+        w.className = 'truncated';
+        w.textContent = '⚠ 日志超过 200KB, 仅显示最后部分 (总大小 ' + fmtBytes(d.total_bytes) + ')';
+        body.appendChild(w);
+      }
+    }
+    if (d.lines && d.lines.length) {
+      const frag = document.createDocumentFragment();
+      for (const ln of d.lines) {
+        const div = document.createElement('div');
+        div.textContent = ln;
+        frag.appendChild(div);
+      }
+      body.appendChild(frag);
+      const atBottom = body.scrollHeight - body.scrollTop - body.clientHeight < 60;
+      if (atBottom || LOG_SINCE === 0) body.scrollTop = body.scrollHeight;
+    } else if (LOG_SINCE === 0 && (!d.lines || d.lines.length === 0)) {
+      body.innerHTML = '<span class="empty">(脚本尚未启动, 无日志)</span>';
+    }
+    $('log-title').textContent = SELECTED + (d.running ? ' · 运行中' : ' · 已结束');
+  const st = $('log-status');
+  if (d.running) { st.className = 'status-tag live'; st.innerHTML = '<span class="live-dot"></span>LIVE'; }
+  else { st.className = 'status-tag'; st.textContent = '已结束'; }
+    LOG_SINCE = d.next_since;
+  } catch (e) { /* swallow */ }
+}
+
+// 每首歌的重复次数 (存 localStorage, 跨刷新保持)
+const PLAY_COUNTS_KEY = 'qzpiano_play_counts';
+function loadPlayCounts() {
+  try { return JSON.parse(localStorage.getItem(PLAY_COUNTS_KEY) || '{}') || {}; }
+  catch (e) { return {}; }
+}
+function savePlayCounts(o) {
+  try { localStorage.setItem(PLAY_COUNTS_KEY, JSON.stringify(o)); } catch (e) {}
+}
+function getPlayCount(name, fallback) {
+  const m = loadPlayCounts();
+  return (typeof m[name] === 'number' && m[name] > 0) ? m[name] : fallback;
+}
+function setPlayCount(name, n) {
+  const m = loadPlayCounts();
+  m[name] = n;
+  savePlayCounts(m);
+}
+
+async function runScript(name) {
+  let spec = null;
+  if (LAST_STATUS && LAST_STATUS.scripts) {
+    for (const s of LAST_STATUS.scripts) {
+      if (s.name === name) { spec = s; break; }
+    }
+  }
+  if (spec && spec.requires_confirm) {
+    const ok = confirm(
+      '即将执行《' + spec.label + '》:\n\n' +
+      spec.desc + '\n\n' +
+      '将调用 SDK 操作机器人, 请确认:\n' +
+      '  · 机器人周围无障碍物\n' +
+      '  · 急停可用\n' +
+      '  · 与其他运行中的脚本互斥 (loop_player / 单曲均会失败)\n\n' +
+      '确认执行?'
+    );
+    if (!ok) return;
+  }
+  let count = null;
+  if (spec && spec.play_count_arg) {
+    count = getPlayCount(name, spec.default_play_count || 1);
+  }
+  const r = await fetch(BASE_URL + '/api/run', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: name, count: count }),
+  });
+  const d = await r.json();
+  if (!d.ok) {
+    alert('启动失败: ' + d.error);
+    return;
+  }
+  selectScript(name);
+}
+
+async function stopScript(name) {
+  const r = await fetch(BASE_URL + '/api/stop', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: name }),
+  });
+  const d = await r.json();
+  if (!d.ok && d.error) {
+    alert(d.error);
+  }
+  fetchStatus();
+}
+
+$('stop-all').addEventListener('click', async () => {
+  if (!confirm('确认停止所有由本控制器启动的脚本？')) return;
+  const r = await fetch(BASE_URL + '/api/stop_all', { method: 'POST' });
+  const d = await r.json();
+  console.log('stop_all:', d);
+  fetchStatus();
+});
+
+function tickClock() {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  $('clock').textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+}
+
+setInterval(tickClock, 1000);
+setInterval(fetchStatus, 1500);
+setInterval(fetchLogs, 1500);
+// 服务器连接 (可配置, 跨网络切换)
+let BASE_URL;
+try { BASE_URL = localStorage.getItem("qzpiano_base_url") || window.location.origin; }
+catch (e) { BASE_URL = window.location.origin; }
+let CONN_OK = false;
+
+async function probeBaseUrl(url) {
+  try {
+    const r = await fetch(url + '/api/status', {cache: 'no-store'});
+    if (!r.ok) return {ok: false, error: 'HTTP ' + r.status};
+    return {ok: true, data: await r.json()};
+  } catch (e) { return {ok: false, error: e.message || String(e)}; }
+}
+
+function normalizeServerUrl(raw) {
+  raw = (raw || '').trim();
+  if (!raw) return null;
+  if (!/^https?:\/\//i.test(raw)) raw = 'http://' + raw;
+  try { const u = new URL(raw); if (!u.port) u.port = '8088'; return u.origin; }
+  catch (e) { return null; }
+}
+
+function setConnStatus(kind, text) {
+  $('conn-text').textContent = text;
+  $('conn-status').className = 'conn-status ' + kind;
+  const dot = document.querySelector('#conn-status .dot-sm');
+  dot.className = 'dot-sm ' + (kind === 'ok' ? 'ok' : (kind === 'bad' ? 'bad' : ''));
+  $('dot-conn').className = 'dot ' + (kind === 'ok' ? 'ok' : (kind === 'bad' ? 'bad' : ''));
+  $('server-url').value = BASE_URL;
+  CONN_OK = (kind === 'ok');
+}
+
+function renderDetectedList(urls) {
+  const box = $('detected-list');
+  box.innerHTML = '';
+  if (!urls || !urls.length) {
+    const e = document.createElement('div');
+    e.className = 'detected-row';
+    e.innerHTML = '<span class="url" style="color:var(--text3)">无可用接口</span>';
+    box.appendChild(e); return;
+  }
+  for (const entry of urls) {
+    const url = (typeof entry === 'string') ? entry : entry[0];
+    const iface = (typeof entry === 'object' && entry) ? entry[1] : '';
+    const row = document.createElement('div');
+    row.className = 'detected-row' + (url === BASE_URL ? ' active' : '');
+    const u = document.createElement('span');
+    u.className = 'url';
+    if (iface) {
+      const tag = document.createElement('span');
+      tag.className = 'tag';
+      tag.textContent = iface;
+      u.appendChild(tag);
+    }
+    u.appendChild(document.createTextNode(url));
+    const use = document.createElement('button');
+    use.className = 'use';
+    use.textContent = '切换';
+    use.addEventListener('click', (ev) => {
+      ev.preventDefault(); ev.stopPropagation();
+      $('server-url').value = url;
+      applyServerUrl(url);
+    });
+    row.appendChild(u);
+    row.appendChild(use);
+    box.appendChild(row);
+  }
+}
+
+async function applyServerUrl(input) {
+  const url = normalizeServerUrl(input);
+  if (!url) { setConnStatus('bad', '地址格式错 (例如 192.168.1.88:8088)'); return false; }
+  setConnStatus('muted', '测试 ' + url + ' ...');
+  const r = await probeBaseUrl(url);
+  if (r.ok) {
+    BASE_URL = url;
+    try { localStorage.setItem('qzpiano_base_url', BASE_URL); } catch (e) {}
+    setConnStatus('ok', '已连接 ' + BASE_URL);
+    render(r.data); LAST_STATUS = r.data;
+    renderDetectedList(r.data.server.access_urls || []);
+    fetchLogs();
+    return true;
+  }
+  setConnStatus('bad', '连不上: ' + r.error);
+  return false;
+}
+
+async function bootstrap() {
+  $('server-url').value = BASE_URL;
+  setConnStatus('muted', '连接 ' + BASE_URL + ' ...');
+  let r = await probeBaseUrl(BASE_URL);
+  if (!r.ok && BASE_URL !== window.location.origin) {
+    setConnStatus('muted', BASE_URL + ' 连不上, 回落 ' + window.location.origin);
+    r = await probeBaseUrl(window.location.origin);
+    if (r.ok) {
+      BASE_URL = window.location.origin;
+      try { localStorage.removeItem('qzpiano_base_url'); } catch (e) {}
+    }
+  }
+  if (r.ok) {
+    setConnStatus('ok', '已连接 ' + BASE_URL);
+    render(r.data); LAST_STATUS = r.data;
+    renderDetectedList(r.data.server.access_urls || []);
+    fetchLogs();
+  } else {
+    setConnStatus('bad', '连不上: ' + r.error);
+  }
+}
+
+$('apply-url').addEventListener('click', () => {
+  applyServerUrl($('server-url').value);
+});
+$('server-url').addEventListener('keydown', (ev) => {
+  if (ev.key === 'Enter') { ev.preventDefault(); $('apply-url').click(); }
+});
+
+tickClock();
+bootstrap();
+fetchLogs();
+</script>
+</body>
+</html>
