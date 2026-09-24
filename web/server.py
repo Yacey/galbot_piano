@@ -155,6 +155,21 @@ SCRIPTS = [
         "requires_confirm": False,
         "section": "tools",
     },
+    {
+        "name": "Tools/calibrate_pose.py",
+        "label": "基础调姿",
+        "desc": "双手到 FIRST_POSITION → ORIGINAL 等 N 秒 → 全身归零 (用户校准琴键位姿)",
+        "group": "reset",
+        "exclusive_with": {"playlist", "score", "reset"},
+        "action": "reset",
+        "requires_confirm": True,
+        "play_count_arg": "--wait",
+        "default_play_count": 10,
+        "play_count_min": 1,
+        "play_count_max": 300,
+        "play_count_label": "秒",
+        "section": "tools",
+    },
 ]
 SCRIPT_BY_NAME = {s["name"]: s for s in SCRIPTS}
 

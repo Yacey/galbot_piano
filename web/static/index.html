@@ -301,7 +301,9 @@ function renderScripts(scripts, runs, external) {
     const stopDisabled = (state === 'run') ? '' : 'disabled';
     let runBtnClass = 'run', runBtnLabel = '▶ 运行';
     if (s.action === 'reset') {
-      runBtnClass = 'reset'; runBtnLabel = '↻ 复位';
+      runBtnClass = 'reset';
+      // 区分复位(没有计数器) vs 基础调姿(有计数器,单位=秒)
+      runBtnLabel = s.play_count_arg ? '↻ 调姿' : '↻ 复位';
     } else if (s.action === 'open') {
       runBtnClass = 'open'; runBtnLabel = '✋ 张开';
     }
@@ -317,9 +319,16 @@ function renderScripts(scripts, runs, external) {
           '<button data-cmd="dec" type="button" title="减少次数">−</button>' +
           '<input type="number" min="' + pcMin + '" max="' + pcMax + '" value="' + curCount + '" />' +
           '<button data-cmd="inc" type="button" title="增加次数">+</button>' +
-          '<span class="pcount-label">次</span>' +
+          '<span class="pcount-label">' + (s.play_count_label || '次') + '</span>' +
         '</span>';
-      runBtnLabel += ' ×' + curCount;
+      const unit = s.play_count_label || '';
+      // 钢琴(默认单位"次"): "▶ 运行 ×3"
+      // 调姿(单位"秒"): "↻ 调姿 10秒"
+      if (unit === '秒') {
+        runBtnLabel += ' ' + curCount + '秒';
+      } else {
+        runBtnLabel += ' ×' + curCount;
+      }
     }
     card.innerHTML =
       '<div class="head"><div class="name">' + s.label + '</div>' + badge(state) + '</div>' +
